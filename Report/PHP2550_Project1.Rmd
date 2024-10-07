@@ -652,6 +652,8 @@ Based on previous research on marathon performance, we expected performance to v
 
 There are several limitations in this study. First, the number of observations for the youngest and oldest age groups is relatively small compared to the middle-aged groups (`Table 1`). This may lead to a reduction in statistical power for the youngest and the oldest age groups. The findings for the youngest and oldest groups may not be as generalizable to the broader population in these age ranges. Second, this data contains little information on marathon performance in extreme weather conditions. This reduces the ability to predict how environmental factors, such as high WBGT (Wet Bulb Globe Temperature) or solar radiation, might affect marathon performance under such conditions. Without sufficient data on extreme weather conditions, the analysis may underestimate the true impact of these conditions on performance. Further, the statistical model used in this study does not capture the non-linear relationship between performance and age. More complex models and model selection processes may be needed to address this structure.
 
+\newpage
+
 # Reference
 
 Ely, B. R., Cheuvront, S. N., Kenefick, R. W., & Sawka, M. N. (2010). Aerobic performance is degraded, despite modest hyperthermia, in hot environments. Med Sci Sports Exerc, 42(1), 135-41.
