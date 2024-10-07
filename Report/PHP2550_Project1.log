@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.10.6)  6 OCT 2024 23:33
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.10.6)  6 OCT 2024 23:36
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -679,93 +679,93 @@ Package pdftex.def Info: PHP2550_Project1_files/figure-latex/unnamed-chunk-12-1.
 
 [11]
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 662.
-LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 771.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 664.
+LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 773.
 (/Users/yunanchen/Library/TinyTeX/texmf-dist/tex/latex/lm/ts1lmtt.fd
 File: ts1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 
 LaTeX Font Warning: Font shape `T1/lmtt/bx/it' in size <10> not available
-(Font)              Font shape `T1/lmtt/b/sl' tried instead on input line 829.
+(Font)              Font shape `T1/lmtt/b/sl' tried instead on input line 831.
 
 
 
 [12]
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
 
 [13]
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
 
 [14{/Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}]
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
 
 [15]
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
 
 [16]
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
 
 [17]
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
 
 [18]
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
 
 [19]
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
-Underfull \vbox (badness 10000) detected at line 1189
+Underfull \vbox (badness 10000) detected at line 1191
  []
 
 
@@ -790,7 +790,7 @@ Here is how much of TeX's memory you used:
  14 hyphenation exceptions out of 8191
  89i,10n,93p,542b,567s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi7.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtk10.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtko10.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb></Users/yunanchen/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtti10.pfb>
-Output written on PHP2550_Project1.pdf (21 pages, 650325 bytes).
+Output written on PHP2550_Project1.pdf (21 pages, 650290 bytes).
 PDF statistics:
  359 PDF objects out of 1000 (max. 8388607)
  279 compressed objects within 3 object streams
