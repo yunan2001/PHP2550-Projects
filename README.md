@@ -18,7 +18,7 @@ This report's exploratory data analysis revealed that there was a U-shape, non-l
 ### Data PreProcessing
 `Data_PreProcessing.R`: Contains the preprocessing steps necessary for exploratory data analysis. Specifically, this script merged the air quality variable to the raw data and created a categorical variable for age `age_grp` using the 24, 39, 54, and 69 cut-offs. 
 
-### report
+### Report
 `PHP2550_Project1.Rmd`: The Rmarkdown version of the Exploratory Data Analysis report, which includes both written text interpretations and raw code used in the analysis. 
 
 `PHP2550_Project1.pdf`: The PDF version of the Exploratory Data Analysis report, which includes both written text interpretations and a Code Appendix with the raw code used in the analysis. 
