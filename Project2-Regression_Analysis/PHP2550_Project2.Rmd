@@ -1,6 +1,78 @@
 ---
-title: "Untitled"
+title: "Exploring the Relationships between Environmental Conditions and Marathon Performance"
 author: "Yunan Chen"
-date: "2024-11-05"
-output: pdf_document
+date: "2024-11-10"
+output:
+  pdf_document: default
+  word_document: default
 ---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+# data manipulation
+library(dplyr)
+library(tidyr)
+
+# summary tables
+library(kableExtra)
+library(gtsummary)
+library(gt)
+
+# interaction plots
+library(ggplot2)
+library(ggpubr)
+library(ggExtra)
+library(ggcorrplot)
+library(lubridate)
+library(ggridges)
+
+# model
+# library(lme4)
+library(lmerTest)
+```
+
+
+# Abstract
+
+# Introduction
+
+# Data Preprocessing
+```{r}
+AE <- read.csv("~/Desktop/PHP 2550/Data/project2.csv")
+
+# Create a new column to classify groups
+AE <- AE %>%
+  mutate(Group = case_when(
+    Var == 0 & BA == 0 ~ "ST + placebo",
+    Var == 0 & BA == 1 ~ "BASC + placebo",
+    Var == 1 & BA == 0 ~ "ST + varenicline",
+    Var == 1 & BA == 1 ~ "BASC + varenicline"
+  ))
+
+# Convert group and other variables to factors for better presentation
+AE <- AE %>%
+  mutate(
+    Group = factor(Group),
+    sex_ps = factor(sex_ps, labels = c("Male", "Female")),  # Assuming 1 = Male, 2 = Female
+    Black = factor(Black, labels = c("No", "Yes")),
+    NHW = factor(NHW, labels = c("No", "Yes")),
+    Hisp = factor(Hisp, labels = c("No", "Yes"))
+  )
+
+# Create summary table using tbl_summary
+summary_table <- AE %>%
+  select(Group, age_ps, sex_ps, Black, NHW, Hisp) %>%
+  tbl_summary(
+    by = Group,  # Group by the treatment groups
+    statistic = list(all_continuous() ~ "{mean} ({sd})",  # Mean (SD) for continuous variables
+                     all_categorical() ~ "{n} ({p}%)"),    # n (%) for categorical variables
+    digits = all_continuous() ~ 1                          # Rounding to 1 decimal place for continuous
+  ) %>%
+  add_overall() %>%
+  modify_header(label = "**Characteristic**") %>%
+  bold_labels()
+
+# Display the summary table
+summary_table
+```
