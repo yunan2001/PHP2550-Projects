@@ -1,36 +1,31 @@
-# PHP2550-Project1-EDA
+# PHP2550-Project2-Regression Analysis
 
 ### Background
 
-The implications of weather conditions on athletics performance in endurance exercises such as marathons have raised considerable attention over the past few years. It was hypothesized by researchers that participants’ performance would be degraded as they aged, or with warmer conditions, or by sex. Among all weather-related factors, temperature (i.e., heat or cold), relative humidity (i.e., dry or humid), wind speed, solar radiation, and air quality are considered to have the largest potential effect. Exploration needed to be done to validate these statements and to determine the relationship between weather conditions and the performance.
+This project analyzes data from a clinical trial investigating smoking cessation strategies for individuals with major depressive disorder (MDD). The study compares Behavioral Activation for Smoking Cessation (BASC) with standard treatment (ST) and examines the effectiveness of varenicline versus placebo on long-term smoking abstinence. The aim is to explore baseline variables that may moderate or predict treatment effectiveness.
 
-### Methods
+### Data and Analysis Methods
 
-This report explores the relationship between age and marathon performance in men and women. Exploring the impact of environmental conditions including temperature, humidity, solar radiation, and wind on marathon performance, and whether the impact differs across age and gender. Identifying the weather conditions that have the largest impact on marathon performance.
+The dataset includes demographic, psychological, and smoking history variables for 300 participants, split equally across four treatment groups. Data preprocessing involved multiple imputations for missing values. An exploratory analysis was conducted to identify patterns, followed by regression analysis using regularized Lasso logistic regression to select significant predictors and interactions. Cross-validation was applied to tune the model and assess generalizability.
 
 ### Results
 
-This report's exploratory data analysis revealed that there was a U-shape, non-linear relationship between marathon performance and age for both men and women. This suggests that the performance would first increase, reach a peak, and then decrease after some point of age. On average, the optimal performance was observed in women age 28, and men age 30. Weather conditions tended to have a larger impact on the elderly compared to the younger, relationships differ by different weather-related variables. The full report can be found [here](Report/PHP2550_Project1.pdf).
-
-![](Images/Age.png)
+The exploratory analysis highlighted factors such as education, age, and nicotine dependence as influential in smoking cessation outcomes. Regression analysis found varenicline to be associated with higher abstinence rates, with BASC showing additional benefit when combined with varenicline. The analysis also revealed that baseline nicotine dependence and current depressive symptoms acted as moderators for BASC, with higher dependence and active depressive symptoms potentially reducing BASC’s effectiveness. Key predictors of abstinence included college education, lower nicotine dependence, and certain income levels. The model demonstrated reasonable classification accuracy (AUC = 0.76), though calibration issues indicated closer alignment on training data than test data.
 
 ## Files
-### Data PreProcessing
-`Data_PreProcessing.R`: Contains the preprocessing steps necessary for exploratory data analysis. Specifically, this script merged the air quality variable to the raw data and created a categorical variable for age `age_grp` using the 24, 39, 54, and 69 cut-offs. 
 
 ### Report
-`PHP2550_Project1.Rmd`: The Rmarkdown version of the Exploratory Data Analysis report, which includes both written text interpretations and raw code used in the analysis. 
+`PHP2550_Project2.Rmd`: The Rmarkdown version of the Regression Analysis report, which includes both written text interpretations and raw code used in the analysis. 
 
-`PHP2550_Project1.pdf`: The PDF version of the Exploratory Data Analysis report, which includes both written text interpretations and a Code Appendix with the raw code used in the analysis. 
+`PHP2550_Project2.pdf`: The PDF version of the Regression Analysis report, which includes both written text interpretations and a Code Appendix with the raw code used in the analysis. 
 
 
 ## Dependencies
 
 The following packages were used in this analysis: 
 
- - Data Manipulation: `dplyr`, `tidyr`
- - Table Formatting: `gt`, `gtsummary`, `knitr`, `kableExtra`
- - Data Visualization: `ggplot2`, `ggpubr`, `ggExtra`, `ggcorrplot`
- - Time Conversion: `lubridate`
- - Model: `lmerTest`, `broom.mixed`
+ - Data Manipulation: `dplyr`, `tidyr`, `mice`, `caret`
+ - Table Formatting: `gt`, `gtsummary`
+ - Data Visualization: `ggplot2`, `ggpubr`, `ggExtra`, `gridExtra`, `predtools`, `pROC`
+ - Model: `glmnet`, `boot`, `ISLR`
  
