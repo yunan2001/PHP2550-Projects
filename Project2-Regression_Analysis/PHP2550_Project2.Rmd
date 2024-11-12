@@ -1,5 +1,5 @@
 ---
-title: "Exploring the Relationships between Environmental Conditions and Marathon Performance"
+title: "Evaluating Predictors and Moderators of Smoking Abstinence in Individuals with Major Depressive Disorder: Insights from Behavioral and Pharmacological Interventions"
 author: "Yunan Chen"
 date: "2024-11-10"
 output:
@@ -17,7 +17,7 @@ library(mice)
 library(caret)
 
 # Tables
-library(kableExtra)
+#library(kableExtra)
 library(gtsummary)
 library(gt)
 
@@ -29,8 +29,6 @@ library(predtools)
 library(pROC)
 library(gridExtra)
 library(ggExtra)
-library(ggcorrplot)
-library(lubridate)
 
 
 # Models
@@ -42,7 +40,7 @@ library(ISLR)
 
 # Abstract
 
-This report examines data from a clinical trial exploring smoking abstinence treatments for individuals with major depressive disorder (MDD), who face unique challenges in quitting smoking. The study evaluates two behavioral treatments: Behavioral Activation for Smoking Cessation (BASC) and standard treatment (ST), paired with either varenicline or placebo. Results indicate that varenicline significantly improves smoking cessation rates compared to placebo, underscoring its effectiveness in this population. BASC, designed to counter depressive symptoms by encouraging engagement in meaningful activities, shows promise, especially when combined with varenicline. However, certain baseline factors, such as nicotine dependence and active depressive symptoms, appear to influence the behavioral treatment effectiveness. Higher nicotine dependence slightly reduces BASC’s impact, while current MDD symptoms can act as a barrier to successful abstinence. Exploratory analyses highlight that demographic and behavioral factors like education, income, and age affect cessation outcomes. Regression analysis reveals predictors of abstinence, suggesting that individuals with higher education, lower nicotine dependence, and certain income levels have greater odds of quitting. The model’s classification accuracy indicates reliable performance, though calibration issues on test data suggest potential for improvement. These findings emphasize the need for tailored interventions for smokers with MDD, particularly combining BASC and varenicline, to enhance long-term cessation success.
+This report examines data from a clinical trial exploring smoking abstinence treatments for individuals with major depressive disorder (MDD), who face unique challenges in quitting smoking. The study evaluates two behavioral treatments: Behavioral Activation for Smoking Cessation (BASC) and standard treatment (ST), paired with either varenicline or placebo. Results indicate that varenicline improves smoking abstinence rates compared to placebo, underscoring its effectiveness in this population. BASC, designed to counter depressive symptoms by encouraging engagement in meaningful activities, shows promise, especially when combined with varenicline. However, certain baseline factors, such as nicotine dependence and active depressive symptoms, appear to influence the behavioral treatment effectiveness. Higher nicotine dependence slightly reduces BASC’s impact, while current MDD symptoms can act as a barrier to successful abstinence. Exploratory analyses highlight that demographic and behavioral factors like education, income, and age affect somking abstinence. Regression analysis reveals predictors of abstinence, suggesting that individuals with higher education, lower nicotine dependence, and certain income levels have greater odds of quitting. The model’s classification accuracy indicates reliable performance, though calibration issues on test data suggest potential for improvement. These findings emphasize the need for tailored interventions for smokers with MDD, particularly combining BASC and varenicline, to enhance long-term cessation success.
 
 # Introduction
 
@@ -53,7 +51,7 @@ This report analyzes data from that clinical trial with the objectives of examin
 
 # Data Collection and Data Preprocessing
 
-The data used in this report was provided by Dr. George Papandonatos and derived from a randomized placebo-controlled trial that investigated smoking cessation interventions in individuals with a history of major depressive disorder (MDD) (Hitsman et al., 2023). In this trial, 300 adults who smoked daily (at least one cigarette per day) and had a lifetime diagnosis of MDD were recruited from research clinics at Northwestern University (Chicago, IL, USA) and the University of Pennsylvania. Participants were randomized to receive one of two behavioral treatments, Behavioral Activation for Smoking Cessation (BASC) or Standard Treatment (ST), alongside either varenicline or placebo. The intervention period lasted 12 weeks, with medication administered from weeks 2 to 14. Medication blister packs were dispensed in two sets: at week 3 (for weeks 3–7) and at week 7 (for weeks 8–13). Both BA treatment arms involved eight 45-minute sessions, conducted weekly for the first 4 weeks and biweekly for the remaining 8 weeks, with a strong focus on stress reduction, loss of reward, and social-environmental strategies to support abstinence. Abstinence from smoking was assessed at a follow-up visit during week 27. Baseline demographic, smoking, and psychiatric history data were collected at the start of the study.  
+The data used in this report was provided by Dr. George Papandonatos and derived from a randomized placebo-controlled trial that investigated smoking cessation interventions in individuals with a history of major depressive disorder (MDD) (Hitsman et al., 2023). In this trial, 300 adults who smoked daily (at least one cigarette per day) and had a lifetime diagnosis of MDD were recruited. Participants were randomized to receive one of two behavioral treatments, Behavioral Activation for Smoking Cessation (BASC) or Standard Treatment (ST), alongside either varenicline or placebo. The intervention period lasted 12 weeks. Medication blister packs were dispensed in two sets: at week 3 (for weeks 3–7) and at week 7 (for weeks 8–13). Both BA treatment arms involved eight 45-minute sessions, conducted weekly for the first 4 weeks and biweekly for the remaining 8 weeks, with a strong focus on stress reduction, loss of reward, and social-environmental strategies to support abstinence. Abstinence from smoking was assessed at a follow-up visit during week 27. Baseline demographic, smoking, and psychiatric history data were collected at the start of the study.  
 ```{r}
 project2 <- read.csv("~/Desktop/PHP 2550/Data/project2.csv")
 
@@ -97,8 +95,7 @@ project2 <-  project2 %>%
 ```
 
 
-`Table 1` shows the baseline characteristics of participants by treatment group and overall sample. The treatment groups are combinations of pharmacotherapy (placebo vs varenicline) and behavioral treatment (ST vs BASC). Participants were assigned equally to each of the four treatment groups, with approximately 70 participants in each group. In the groups receiving varenicline (ST + varenicline group and BASC + varenicline group), a higher percentage of participants achieved smoking cessation (32% and 31%, respectively) compared to the placebo group (12% in the ST + placebo group and 5.9% in the BASC + placebo group). This suggests that varenicline may be more effective than placebo in helping participants achieve smoking cessation. Looking at the distribution of education levels across the four groups, only a very small number of participants had grade school education, and there was only one participant in the BASC + placebo group. The high school level group was also underrepresented in all groups, ranging from 2.9% to 8.4% in each group. Given the low representation of the "Grade school" group and the "Some of the high school" group, it would be reasonable to combine these two groups into the “High school and below” group. This would reduce the sparsity within each treatment group. Similar to education levels, we could also consider combining the income levels "\$50,001-\$75,000" and "\$75,000 and over" into "\$50,000 and over" and merging "blacks and Hispanics" with "Hispanic” in race. Missing values indicate the need for imputation. Therefore, multiple imputation was performed and the imputed data were used in the regression analyses.
-
+`Table 1` shows the baseline characteristics of participants by treatment group and overall sample. The treatment groups are combinations of pharmacotherapy (placebo vs varenicline) and behavioral treatment (ST vs BASC). Participants were approximately equally assigned to each of the four treatment groups. In the groups receiving varenicline (ST + varenicline group and BASC + varenicline group), a higher percentage of participants achieved smoking cessation (32% and 31%, respectively) compared to the placebo group (12% in the ST + placebo group and 5.9% in the BASC + placebo group). This suggests that varenicline may be more effective than placebo in helping participants achieve smoking cessation. Looking at the distribution of education levels across the four groups, only a very small number of participants had Grade school education, with only one participant in the BASC + placebo group. The high school level group was also underrepresented in all groups, ranging from 2.9% to 8.4% in each group. Given the low representation of the "Grade school" group and the "Some of the high school" group, it would be reasonable to combine these two groups into the “High school and below” group. This would reduce the sparsity within each treatment group. Similar to education levels, we could also consider combining the income levels "\$50,001-\$75,000" and "\$75,000 and over" into "\$50,000 and over" and merging "blacks and Hispanics" with "Hispanic” in race. Missing values indicate the need for imputation. Therefore, multiple imputation was performed and the imputed data were used in the regression analyses.
 
 ```{r out.width="50%", fig.align="center"}
 project2 %>%
@@ -108,11 +105,11 @@ project2 %>%
     label = list(abst ~ "Smoking Abstinence",
                  age_ps ~ "Age",
                  sex_ps ~ "Sex (% female)",
-                 inc ~ "Income per year",
+                 inc ~ "Income /yr",
                  edu ~ "Education",
                  ftcd_score ~ "FTCD score",
                  ftcd.5.mins ~ "Smoking with 5 mins of waking up",
-                 cpd_ps ~ "Cigarettes per day",
+                 cpd_ps ~ "Cigarettes /day",
                  crv_total_pq1 ~ "Cigarette reward value",
                  hedonsum_n_pq1 ~ "Substitute reinforcers",
                  hedonsum_y_pq1 ~ "Complementary reinforcers",
@@ -122,7 +119,8 @@ project2 %>%
                  mde_curr ~ "Current vs past MDD",
                  NMR ~ "Nicotine Metabolism Ratio",
                  Only.Menthol ~ "Exclusive Mentholated Cigarette User",
-                 readiness ~"Readiness to quit smoking"),
+                 readiness ~"Readiness to quit smoking",
+                 bdi_score_w00 ~ "BDI score"),
     type = list(readiness ~ "continuous"),
     statistic = list(all_continuous() ~ "{mean} ({sd})", 
                      all_categorical() ~ "{n} ({p}%)"),   
@@ -137,11 +135,12 @@ project2 %>%
   tab_header(
     title = md("Table 1: Baseline Characteristics by Treatment Group")) %>% 
   tab_options(
-    table.font.size = px(8)
+    table.font.size = px(8),
+    heading.title.font.size = px(8)
   ) %>% 
   cols_width(
+        vars(label) ~ px(170),  
     everything() ~ px(100),                
-    vars(label) ~ px(150),                
     starts_with("stat_") ~ px(120)        
   ) %>%
     tab_style(
@@ -152,9 +151,7 @@ project2 %>%
 
 \newpage
 
-Examining through the distribution of the continuous variables, four variables are found to have skewed distribution, therefore variable transformations were performed (`Figure 1`). Log transformation was performed on Anhedonia (`shaps_score_pq1_log`), and Nicotine Metabolism Ratio (`NMR`). Square root transformations were performed on Substitute Reinforcers (`hedonsum_n_pq1`), and  Complementary Reinforcers (`hedonsum_y_pq1`). These transformations effectively reduce the skewness of each variable, making the distributions look more normally distributed. This adjustment is beneficial for statistical analyses that assume normality, as it helps the transformed data align more closely with these assumptions.
-
-
+Examining through the distribution of the continuous variables, four variables were found to have skewed distribution, therefore variable transformations were performed (`Figure 1`). Log transformation was performed on Anhedonia (`shaps_score_pq1_log`), and Nicotine Metabolism Ratio (`NMR`). Square root transformations were performed on Substitute Reinforcers (`hedonsum_n_pq1`), and  Complementary Reinforcers (`hedonsum_y_pq1`). These transformations effectively reduce the skewness of each variable, making the distributions look more normally distributed. This adjustment is beneficial for statistical analyses that assume normality, as it helps the transformed data align more closely with these assumptions.
 ```{r out.width="80%", fig.align="center"}
 # Apply log/sqrt transformations to the specified variables
 project2_trans <- project2 %>%
@@ -258,9 +255,10 @@ for (i in 1:5) {
 
 
 # Exploratory Data Analysis
+
 An exploratory analysis was conducted to identify patterns and relationships within the data prior to performing regression analysis. This preliminary investigation aimed to uncover potential trends and insights that could inform the subsequent modeling approach and enhance the interpretation of the regression results. 
 
-`Figure 2` visualizes the number of participants who achieved smoking cessation, broken down by clinically relevant variables, such as smoking behavior and mental health diagnoses, and colored by the four treatment groups. The "ST + varenicline" and "BASC + varenicline" groups generally show higher smoking cessation rates across, indicating that varenicline, either alone or with behavioral activation support (BASC), may be more effective than placebo in helping participants achieve smoking cessation. This trend appears across a variety of behavioral and mental health variables, suggesting potential benefits of the varenicline treatment for a general smoking population. Focusing on depression-related variables—Other lifetime DSM-5 diagnosis, Current vs past MDD, and antidepressant medication—we observe differences in smoking cessation counts between the two varenicline treatment groups: BASC + varenicline and ST + varenicline. Across these variables, the count of smoking cessation instances is generally equal or higher in the BASC + varenicline group compared to the ST + varenicline group. This could indicate a possible interaction between the behavioral activation (BASC) approach and varenicline in supporting smoking cessation for individuals with depressive symptoms or related diagnoses and highlighting the potential need for tailored interventions or additional support for participants with these characteristics. For variables related to smoking behavior, 5 minutes after waking up and menthol cigarette user, the bars show that the number of smoking cessation cases was generally higher in the varenicline group (ST+varenicline and BASC+varenicline) compared with the placebo group, suggesting that pharmacotherapy is an important factor in achieving smoking cessation. However, there was no indication that the type of behavioral treatment (ST vs. BASC) affected outcomes in each pharmacotherapy condition.
+`Figure 2` visualizes the number of participants who achieved smoking abstinence, broken down by clinically relevant variables, such as smoking behavior and mental health diagnoses, and colored by the four treatment groups. The "ST + varenicline" and "BASC + varenicline" groups generally show higher smoking abstinence rates across, indicating that varenicline, either alone or with behavioral activation support (BASC), may be more effective than placebo in helping participants achieve smoking abstinence. This trend appears across a variety of behavioral and mental health variables, suggesting potential benefits of the varenicline treatment for a general smoking population. Focusing on depression-related variables — Other lifetime DSM-5 diagnosis, Current vs past MDD, and antidepressant medication — we observe differences in smoking abstinence counts between the two varenicline treatment groups: BASC + varenicline and ST + varenicline. Across these variables, the count of smoking abstinence instances is generally equal or higher in the BASC + varenicline group compared to the ST + varenicline group. This could indicate a possible interaction between the behavioral activation (BASC) approach and varenicline in supporting smoking abstinence for individuals with depressive symptoms or related diagnoses and highlighting the potential need for tailored interventions or additional support for participants with these characteristics. For variables related to smoking behavior, 5 minutes after waking up and menthol cigarette user, the bars show that the number of smoking abstinence cases was generally higher in the varenicline group (ST+varenicline and BASC+varenicline) compared with the placebo group, suggesting that pharmacotherapy is an important factor in achieving smoking abstinence. However, there was no indication that the type of behavioral treatment (ST vs. BASC) affected outcomes in each pharmacotherapy condition.
 
 ```{r out.width="100%", fig.align="center"}
 # Prepare data by selecting binary variables and reshaping to long format
@@ -303,7 +301,7 @@ ggplot(data = project2_bi_summary, aes(x = Variable, y = sum_abst, fill = Group,
 ```
 
 
-`Table 2` summarizes the number and percentage of smokers who achieved cessation across various education and income levels within four treatment groups: "ST + placebo," "BASC + placebo," "ST + varenicline," and "BASC + varenicline." Generally, the "ST + varenicline" and "BASC + varenicline" groups had higher cessation rates across both education and income categories, suggesting the efficacy of varenicline in aiding smoking cessation. Among education levels, "College graduate" and "Some college/technical school" participants showed particularly high cessation rates in the "ST + varenicline" and "BASC + varenicline" groups, while "High school graduate or GED" individuals also had notable cessation rates, especially within "ST + varenicline." In terms of income, higher income brackets, especially those earning "More than $75,000," had higher cessation rates within the "BASC + varenicline" group, while the "ST + varenicline" group showed consistent cessation rates across various income levels, including lower-income categories. These results suggest that varenicline may be effective across a diverse range of demographic groups.
+`Table 2` summarizes the number and percentage of smokers who achieved cessation across various education and income levels within four treatment groups. Generally, the "ST + varenicline" and "BASC + varenicline" groups had higher cessation rates across both education and income categories, suggesting the efficacy of varenicline in aiding smoking cessation. Among education levels, "College graduate" and "Some college/technical school" participants showed particularly high cessation rates in the "ST + varenicline" and "BASC + varenicline" groups, while "High school graduate or GED" individuals also had notable cessation rates, especially within "ST + varenicline." In terms of income, higher income brackets, especially those earning "\$35,001–50,000" and "More than More than \$75,000" had higher cessation rates within the "BASC + varenicline" group, while the "ST + varenicline" group showed consistent cessation rates across various income levels, including lower-income categories. These results suggest that varenicline may be effective across a diverse range of demographic groups.
 
 ```{r out.width="60%", fig.align='center'}
 # Create summary table for count and percentage of smoking abstinence by Education Level and Income Level
@@ -363,8 +361,9 @@ combined_table %>%
     heading.title.font.size = px(8)
   ) %>% 
   cols_width(
-    everything() ~ px(60), 
-    Variables ~ px(100)
+    Variables ~ px(120),
+    everything() ~ px(60)
+
   ) %>% 
 tab_style(
     style = cell_text(weight = "bold"),
@@ -376,6 +375,7 @@ tab_style(
 ```
 
 \newpage
+
 `Table 3` summarizes continuous variables related to smoking behavior, psychological factor (Anhedonia), and readiness to quit, stratified by treatment group and smoking abstinence status ("Yes" or "No"). The comparison between participants who successfully quit smoking and those who did not reveals a consistent pattern across treatment groups: successful smoking cessation is associated with lower nicotine dependence (as measured by FTCD scores), fewer cigarettes smoked per day, and lower anhedonia scores. This trend holds true regardless of the type of treatment group, suggesting that these factors may be the key predictors of smoking cessation success across both pharmacological and behavioral interventions. The Nicotine Metabolism Ratio (NMR) is a measure of how quickly an individual metabolizes nicotine. Faster nicotine metabolizers tend to experience shorter-lasting effects of nicotine, which can lead to smoking more frequently to maintain nicotine levels. NMR is often considered when assessing an individual's likelihood to quit smoking, as those with a higher metabolism rate might find it more challenging to quit due to the need for more frequent dosing. In this table, we observe that the NMR is generally higher in the smoking abstinence ("Yes") group compared to the non-abstinent ("No") group across most treatment conditions, with the exception of the ST + placebo group. This pattern suggests that, for most treatments, individuals with a higher nicotine metabolism rate had better success in achieving abstinence.
 
 ```{r out.width="80%", fig.align='center'}
@@ -469,16 +469,16 @@ perform_cv_lasso_mod <- function(data, seed = 2550) {
   best_lambdas <- list()
   coef_list <- list()
   auc_list <- list()
-  roc_plots <- list()  # List to store ROC plots
+  roc_plots <- list()  
   train_data_full <- NULL
   test_data_full <- NULL
 
   # Loop through each imputed dataset
   for (i in 1:5) {
-    # Step 2: Complete the imputed dataset
+    # Complete the imputed dataset
     project2_imputed_s <- data[[i]]
     
-    # Step 4: Split data into training and testing sets
+    # Split data into training and testing sets
     set.seed(seed)
     train_index <- createDataPartition(project2_imputed_s$Group, p = 0.7, list = FALSE)
     train_data <- project2_imputed_s[train_index, ]
@@ -493,22 +493,22 @@ perform_cv_lasso_mod <- function(data, seed = 2550) {
       train_data$foldid[train_data$Group == group] <- fold_idex
     }
     
-    # Step 5: Create model matrices for the training data
+    # Create model matrices for the training data
     x_mat <- model.matrix(abst ~ BA * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 + cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt + shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log + Only.Menthol + readiness + Race) + Var * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 + cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt + shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log + Only.Menthol + readiness + Race), data = train_data)[, -1]
     y <- train_data$abst
     
-    # Step 6: Perform LASSO cross-validation to find the best lambda
+    # Perform LASSO cross-validation to find the best lambda
     lasso_model_cv <- cv.glmnet(x_mat, y, alpha = 1, nfolds = 10, foldid = train_data$foldid, family = "binomial")
     
-    # Step 7: Fit LASSO model with the optimal lambda
+    #  Fit LASSO model with the optimal lambda
     best_lambda <- lasso_model_cv$lambda.min
     best_lambdas[[i]] <- best_lambda  # Store the best lambda for this iteration
     lasso_model <- glmnet(x_mat, y, alpha = 1, lambda = best_lambda, family = "binomial")
    
-    # Step 8: Store the coefficients with names
+    # Store the coefficients with names
     coef_list[[i]] <- as.matrix(coef(lasso_model))[, , drop = FALSE]  # Exclude intercept, keep names
     
-    # Step 9: Calculate AUC and create ROC plots for both training and test data
+    #  Calculate AUC and create ROC plots for both training and test data
     x_mat_test <- model.matrix(abst ~ BA * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 + cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt + shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log + Only.Menthol + readiness + Race) + Var * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 + cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt + shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log + Only.Menthol + readiness + Race), data = test_data)[, -1]
     y_test <- test_data$abst
     
@@ -555,7 +555,7 @@ perform_cv_lasso_mod <- function(data, seed = 2550) {
   coef_matrix <- do.call(cbind, coef_list)  # Combine list of named vectors into a matrix
   avg_coef <- rowMeans(coef_matrix, na.rm = TRUE)
   
-  # Return results as a list, including the combined imputed dataset and avg_coef
+  # Return results as a list,
   list(
     best_lambdas = best_lambdas,
     coef_list = coef_list,
@@ -568,7 +568,7 @@ perform_cv_lasso_mod <- function(data, seed = 2550) {
   )
 }
 
-# Run the function on your dataset
+# Run the function on imputed dataset
 results_mod <- perform_cv_lasso_mod(data = project2_imp_trans, seed = 1234)
 ```
 
@@ -590,7 +590,7 @@ for (i in 1:6) {
 # Calculate the proportion of non-zero coefficients for each covariate
 tbl_coef_mod_non_zero$Proportion_Non_Zero <- rowMeans(results_mod$coef_matrix[-1,] != 0)
 
-# Filter to show only covariates that have non-zero coefficients in at least 50% of imputations
+# Filter to show only covariates that have non-zero coefficients 
 tbl_coef_mod_non_zero <- tbl_coef_mod_non_zero[tbl_coef_mod_non_zero$Proportion_Non_Zero >= 0.2, ]
 
 # Rename name of covariates
@@ -647,9 +647,9 @@ tbl_coef_mod_non_zero %>%
 ```
 Focusing initially on the primary effects, education level demonstrates a positive association with smoking abstinence, as indicated by an odds ratio of 1.07. This suggests that individuals with a college degree have 7% greater odds of achieving smoking abstinence compared to those with lower education levels, while accounting for other covariates. The FTCD score, which assesses nicotine dependence, presents an odds ratio of 0.85; thus, each additional point increase in FTCD score corresponds to a 15% reduction in the odds of smoking abstinence. This finding underscores the need for more intensive support for individuals with higher levels of dependence. Additionally, the odds ratio for race (Non-Hispanic White) at 1.03 suggests that Non-Hispanic White smokers have a 3% greater likelihood of achieving smoking abstinence compared to smokers of other racial/ethnic backgrounds.
 
-Turning to the interactions involving the Behavioral Activation for Smoking Cessation (BASC) intervention, the data indicate moderating effects from both nicotine dependence, as measured by the FTCD score, and depression status (current versus past MDD). The interaction between BASC and FTCD score has an average odds ratio of 0.9974, implying that with each additional unit increase in FTCD score, representing higher nicotine dependence, the odds of smoking abstinence slightly decline by 0.3% when the BASC intervention is in place. From a moderation perspective, this implies that while higher nicotine dependence marginally weakens the association between BASC and smoking abstinence, the impact may be modest. Similarly, the interaction between BASC and current versus past major depressive disorder (MDD) status has an average odds ratio of 0.86. This implies that participants with current MDD may have about 14% lower odds of achieving smoking abstinence when compared to those with past MDD, within the context of the BASC intervention. This moderating effect suggests that current MDD may act as a psychological barrier to the effectiveness of the BASC intervention, potentially due to factors associated with active depressive symptoms, such as reduced motivation or higher levels of stress. 
+Turning to the interactions involving the Behavioral Activation for Smoking Cessation (BASC) intervention, the data indicate moderating effects from both nicotine dependence, as measured by the FTCD score, and depression status (current versus past MDD). The interaction between BASC and FTCD score has an average odds ratio of 0.9974, implying that with each additional unit increase in FTCD score, representing higher nicotine dependence, the odds of smoking abstinence slightly decline by 0.3% when the BASC intervention is in place. From a moderation perspective, this implies that while higher nicotine dependence marginally weakens the association between BASC and smoking abstinence, the impact may be modest. Similarly, the interaction between BASC and current versus past major depressive disorder (MDD) status has an average odds ratio of 0.86. This implies that participants with current MDD may have about 14% lower odds of achieving smoking abstinence when compared to those with past MDD, within the context of the BASC intervention, consistent with patterns shown in `Figure 2`. This moderating effect suggests that current MDD may act as a psychological barrier to the effectiveness of the BASC intervention, potentially due to factors associated with active depressive symptoms, such as reduced motivation or higher levels of stress. 
 
-In examining pharmacotherapy-related interactions, three interactions involving age, income level, and cigarette reward value appeared as significant predictors of smoking abstinence in the context of Varenicline use. The average odds ratio for the interaction between Varenicline and age is 1.0124, indicating that with each additional year of age, the odds of smoking abstinence among individuals using Varenicline increase by approximately 1.24%, adjusted for other covariates. Older individuals might experience slightly enhanced benefits from Varenicline, potentially due to factors such as greater motivation or life stage considerations related to health. For the interaction between Varenicline and income within the range of \$35,001–\$50,000, the average odds ratio is 1.1800, indicating that individuals in this income bracket who use Varenicline have an 18% higher likelihood of achieving smoking abstinence compared to those outside this income range. The interaction between Varenicline and cigarette reward value has an average odds ratio of 1.0018, which is very close to 1, suggesting a negligible effect on smoking abstinence. The proportion non-zero value of 0.20 indicates that this interaction was non-zero in only 20% of imputations, suggesting a weak and inconsistent effect. This implies that the perceived reward value of cigarettes has minimal impact on the effectiveness of Varenicline in achieving smoking cessation. The low impact and inconsistency may be due to Varenicline’s strong pharmacological effects, which could diminish the relevance of the reward value perception associated with smoking.
+In examining pharmacotherapy-related interactions, three interactions involving age, income level, and cigarette reward value appeared as significant predictors of smoking abstinence in the context of Varenicline use. The average odds ratio for the interaction between Varenicline and age is 1.0124, indicating that with each additional year of age, the odds of smoking abstinence among individuals using Varenicline increase by approximately 1.24%, adjusted for other covariates. Older individuals might experience slightly enhanced benefits from Varenicline, potentially due to factors such as greater motivation or life stage considerations related to health. For the interaction between Varenicline and income within the range of \$35,001–\$50,000, the average odds ratio is 1.1800, indicating that individuals in this income bracket who use Varenicline have an 18% higher likelihood of achieving smoking abstinence compared to those outside this income range. This is consistent with patterns shown in `Table 2`. The interaction between Varenicline and cigarette reward value has an average odds ratio of 1.0018, which is very close to 1, suggesting a negligible effect on smoking abstinence. The proportion non-zero value of 0.20 indicates that this interaction was non-zero in only 20% of imputations, suggesting a weak and inconsistent effect. This implies that the perceived reward value of cigarettes has minimal impact on the effectiveness of Varenicline in achieving smoking cessation. The low impact and inconsistency may be due to Varenicline’s strong pharmacological effects, which could diminish the relevance of the reward value perception associated with smoking.
 
 ## Model Performance
 
@@ -748,9 +748,9 @@ grid.arrange(calibration_plot_train, calibration_plot_test, ncol = 2) %>%
 ```
 
 # Discussion
-The EDA revealed that demographic and behavioral factors such as age, education, and baseline nicotine dependence influence cessation outcomes. For instance, higher education levels and moderate income brackets were associated with greater smoking abstinence rates, suggesting socioeconomic factors may play a role in treatment efficacy. Additionally, individuals with lower nicotine dependence scores and fewer current depressive symptoms exhibited better outcomes, highlighting the importance of addressing dependence levels and mental health symptoms in smoking cessation strategies.
+The EDA revealed that demographic and behavioral factors such as age, education, and baseline nicotine dependence influence cessation outcomes. For instance, higher education levels and moderate income level were associated with greater smoking abstinence rates, suggesting socioeconomic factors may play a role in treatment efficacy. Additionally, individuals with lower nicotine dependence scores and fewer current depressive symptoms exhibited better outcomes, highlighting the importance of addressing dependence levels and mental health symptoms in smoking cessation strategies.
 
-Regression analysis further supported these findings by identifying key predictors of abstinence. Specifically, varenicline significantly improved the likelihood of smoking abstinence compared to placebo, underscoring its effectiveness as a pharmacotherapy in this population. When combined with Behavioral Activation for Smoking Cessation (BASC), varenicline’s effectiveness was enhanced, with BASC showing particular promise for individuals with MDD by promoting engagement in rewarding activities, thereby potentially mitigating anhedonia and depressive symptoms that often hinder quitting efforts. The model achieved an AUC of 0.76, indicating reliable classification performance; however, calibration issues in the test data suggest that further refinement of the predictive model may be necessary.
+The regression analysis identified education level (college graduate), FTCD score, BASC with current FTCD score, BASC with current MDD, Varenicline with age, and Varenicline with income (\$35,001–\$50,000) as strong predictors of smoking abstinence. College graduates had 7% higher odds of abstinence, while higher nicotine dependence reduced abstinence likelihood by 15% per unit increase. BASC's effectiveness was slightly reduced by high nicotine dependence and active MDD, while varenicline's effectiveness improved with age and moderate income. The model achieved an AUC of 0.76, indicating reliable classification performance; however, calibration issues in the test data suggest that further refinement of the predictive model may be necessary.
 
 However, several limitations should be considered. First, the sample size, while adequate for initial findings, may limit the generalizability of results. Specific subgroups, such as those with varying income levels or education backgrounds, may respond differently to BASC and varenicline, but the sample size in each subgroup was relatively small, potentially affecting the robustness of subgroup analyses. In addition, the need to split the data into training and testing sets, followed by further division of the training set for cross-validation to tune model parameters, reduces the effective data in each subset. The limited data per subset may decrease model stability and generalizability, suggesting that results should be interpreted with caution. A larger sample size in future studies would improve the robustness and predictive reliability of the analysis. Another limitation, rooted in the constraints of the clinical trial, was low treatment adherence, particularly in the BASC-alone group. This low adherence affects the analysis by potentially underestimating the effectiveness of BASC, as participants may not have received sufficient intervention exposure to achieve meaningful outcomes. As a result, the study’s findings may not fully reflect the treatment’s potential impact, limiting the generalizability and strength of the conclusions.
 
