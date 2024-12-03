@@ -4,27 +4,296 @@ author: "Yunan Chen"
 date: "2024-12-02"
 output: pdf_document
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+library(tidyverse)
+library(lmerTest)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(RColorBrewer)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+# Introducation
+# Backgroud
 
-```{r cars}
-summary(cars)
+# Method
+
+# Simulation
+## AIM 1
+Design a simulation study using the ADEMP framework from class to evaluate potential study designs.
+
+### Vary: # of observations, trt effect, within-cluster variance
+```{r}
+simulate_data <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, sigma2, n_sim, alpha_level = 0.05) {
+  
+  # Calculate c2 from the ratio
+  c2 <- c1 / c1_c2_ratio
+  
+  # Calculate the number of observations per cluster
+  n_obs_per_cluster <- floor((B - n_clusters * c1) / (n_clusters * c2)) + 1
+  if (n_obs_per_cluster <= 0) {
+    stop("Insufficient budget for even one observation per cluster.")
+  }
+  
+  # Initialize storage for performance metrics
+  all_metrics <- data.frame(
+    beta_est = numeric(n_sim), 
+    beta_bias = numeric(n_sim), 
+    mse = numeric(n_sim), 
+    ci_coverage = numeric(n_sim),
+    p_value = numeric(n_sim)
+  )
+  
+  # Simulate data and collect metrics
+  for (sim in 1:n_sim) {
+    # Generate random cluster effects
+    cluster_effects <- rnorm(n_clusters, 0, sqrt(gamma2))
+    
+    # Randomly assign clusters to control (0) or treatment (1)
+    #cluster_treatment <- sample(c(0, 1), n_clusters, replace = TRUE)
+    cluster_treatment <- c(0, 1, sample(c(0, 1), n_clusters - 2, replace = TRUE))
+    
+    # Create the cluster data frame
+    cluster_data <- data.frame(
+      cluster_id = rep(1:n_clusters, each = n_obs_per_cluster),
+      X = rep(cluster_treatment, each = n_obs_per_cluster) # Treatment indicator at cluster level
+    )
+    
+    # Compute the true mean (mu) and generate outcomes (Y)
+    cluster_data$mu <- alpha + beta * cluster_data$X + cluster_effects[cluster_data$cluster_id]
+    cluster_data$Y <- cluster_data$mu + rnorm(n_clusters * n_obs_per_cluster, 0, sqrt(sigma2))
+    
+    # Fit a mixed-effects model
+    model <- lmerTest::lmer(Y ~ X + (1 | cluster_id), data = cluster_data)
+    
+    # Extract fixed effect for X and calculate metrics
+    beta_est <- as.numeric(fixef(model)["X"])
+    beta_bias <- beta_est - beta
+    mse <- mean(residuals(model)^2)
+    
+    # Confidence interval and coverage
+    ci <- confint(model, parm = "X", method = "Wald")
+    ci_coverage <- ifelse(beta >= ci[1] && beta <= ci[2], 1, 0)
+    p_value <- as.numeric(summary(model)$coefficients["X", "Pr(>|t|)"])
+    
+    # Store results
+    all_metrics[sim, ] <- c(beta_est, beta_bias, mse, ci_coverage, p_value)
+  }
+  
+  # Compute additional metrics
+  power <- mean(all_metrics$p_value < alpha_level & beta != 0) # True effect detected
+  type_I_error <- mean(all_metrics$p_value < alpha_level & beta == 0) # False positives
+  
+  # Compute average performance metrics
+  avg_performance <- colMeans(all_metrics)
+  
+  # Create output results
+  results <- data.frame(
+    n_clusters = n_clusters,
+    n_obs_per_cluster = n_obs_per_cluster,
+    true_beta = beta,
+    true_sigma = sigma2,
+    c1 = c1,
+    c1_c2_ratio = c1_c2_ratio,
+    avg_beta_est = avg_performance["beta_est"],
+    avg_beta_bias = avg_performance["beta_bias"],
+    avg_mse = avg_performance["mse"],
+    avg_ci_coverage = avg_performance["ci_coverage"],
+    power = power,
+    type_I_error = type_I_error
+  )
+  
+  # Return a list with simulated data and results
+  return(list(
+    cluster_data = cluster_data, # Return one simulated dataset
+    results = results
+  ))
+}
+
+
+# Run Simulation
+results <- simulate_data(
+  n_clusters = 20, 
+  B = 2000, 
+  c1 = 10, 
+  c1_c2_ratio = 2, 
+  alpha = 2, 
+  beta = 1.5, 
+  gamma2 = 1, 
+  sigma2 = 2, 
+  n_sim = 100
+)
+
+# View Results
+results$results
 ```
 
-## Including Plots
+## AIM 2: 
+Explore relationships between the underlying data generation mechanism parameters and the relative costs c1/c2 and how these impact the optimal study design.
+```{r}
+simulate_data_varying <- function(n_clusters_seq, c1_c2_ratios, sigma2_values, B, c1, alpha, beta, gamma2, n_sim, alpha_level = 0.05) {
+  
+  # Initialize storage for all results
+  all_results <- list()
+  
+  # Loop over parameter grid
+  for (n_clusters in n_clusters_seq) {
+    for (c1_c2_ratio in c1_c2_ratios) {
+      for (sigma2 in sigma2_values) {
+        # Run simulation for current parameter set
+        sim_result <- simulate_data(
+          n_clusters = n_clusters, 
+          B = B, 
+          c1 = c1, 
+          c1_c2_ratio = c1_c2_ratio, 
+          alpha = alpha, 
+          beta = beta, 
+          gamma2 = gamma2, 
+          sigma2 = sigma2, 
+          n_sim = n_sim, 
+          alpha_level = alpha_level
+        )
+        
+        # Add parameter values to the results
+        results_with_params <- sim_result$results %>%
+          mutate(n_clusters = n_clusters,
+                 c1_c2_ratio = c1_c2_ratio,
+                 sigma2 = sigma2)
 
-You can also embed plots, for example:
+        # Store combined results
+        all_results <- append(all_results, list(results_with_params))
+      }
+    }
+  }
+  
+  # Combine all results into a single data frame
+  combined_results <- bind_rows(all_results)
+  return(combined_results)
+}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# Parameter values
+n_clusters_seq <- seq(2, 10, 1)
+c1_c2_ratios <- c(2, 5, 10)
+sigma2_values <- c(0.01, 0.1, 0.5)
+B <- 2000
+c1 <- 10
+alpha <- 2
+beta <- 1.5
+gamma2 <- 1
+n_sim <- 100
+
+# Run simulations over the grid
+varying_results <- simulate_data_varying(
+  n_clusters_seq = n_clusters_seq,
+  c1_c2_ratios = c1_c2_ratios,
+  sigma2_values = sigma2_values,
+  B = B,
+  c1 = c1,
+  alpha = alpha,
+  beta = beta,
+  gamma2 = gamma2,
+  n_sim = n_sim
+)
+
+# View results
+print(varying_results)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+# Assuming 'varying_results' contains the simulation results
+# Modify the data for clarity in plot labels
+plot_data <- varying_results %>%
+  rename(
+    ICC = true_sigma, # Rename true_sigma to ICC for consistency with the plot
+    n_clusters = n_clusters,
+    sigma2 = sigma2
+  )
+
+# Define metrics to plot
+metrics <- c("avg_beta_est", "avg_beta_bias", "avg_mse", 
+             "avg_ci_coverage", "power"
+             #, "type_I_error"
+             )
+metric_labels <- c(
+  "Average Beta Estimate", 
+  "Average Beta Bias", 
+  "Mean Squared Error (MSE)", 
+  "Coverage Probability", 
+  "Power", 
+  "Type I Error"
+)
+
+# Initialize an empty list to store plots
+plots <- list()
+
+# Create a plot for each metric
+for (i in seq_along(metrics)) {
+  metric <- metrics[i]
+  metric_label <- metric_labels[i]
+  
+  p <- ggplot(plot_data, aes(x = n_clusters, y = .data[[metric]], color = factor(c1_c2_ratio))) +
+    geom_line() +
+    geom_point() +
+    facet_wrap(~sigma2, scales = "free_y", labeller = label_both) +
+    labs(
+      x = "# of Clusters",
+      y = metric_label,
+      color = "c1/c2 Ratio",
+      title = metric_label
+    ) +
+    theme_minimal() +
+    theme(
+      strip.text = element_text(size = 10),
+      axis.title = element_text(size = 12),
+      legend.title = element_text(size = 10),
+      legend.position = "bottom"
+    )
+  
+  # Add the plot to the list
+  plots[[i]] <- p
+}
+
+# Arrange all plots into one figure using ggarrange
+combined_plot <- ggarrange(
+  plots[[1]], plots[[2]], plots[[3]],
+  plots[[4]], plots[[5]], plots[[6]],
+  ncol = 2, nrow = 3, common.legend = TRUE, legend = "bottom"
+)
+
+# Annotate the combined plot with a title
+annotate_figure(
+  combined_plot,
+  top = text_grob("Simulation Results Across Metrics", size = 14, face = "bold")
+)
+```
+
+## AIM 3
+```{r}
+simulate_poisson_data <- function(n_clusters, n_obs_per_cluster, alpha, beta, gamma2) {
+  cluster_effects <- rnorm(n_clusters, 0, sqrt(gamma2)) # Random cluster effects
+  cluster_data <- data.frame(cluster_id = rep(1:n_clusters, each = n_obs_per_cluster),
+                             X = rep(c(0, 1), length.out = n_clusters * n_obs_per_cluster)) # Treatment indicator
+  cluster_data$lambda <- exp(alpha + beta * cluster_data$X + cluster_effects[cluster_data$cluster_id])
+  cluster_data$Y <- rpois(n_clusters * n_obs_per_cluster, lambda = cluster_data$lambda) # Observed outcomes
+  return(cluster_data)
+}
+
+# Simulate data
+sim_data_poisson <- simulate_poisson_data(n_clusters, n_obs_per_cluster, alpha, beta, gamma2)
+
+# Fit a Poisson GLMM
+fit_poisson <- glmer(Y ~ X + (1 | cluster_id), data = sim_data_poisson, family = poisson)
+summary(fit_poisson)
+
+# Evaluate performance
+est_beta_poisson <- fixef(fit_poisson)["X"]
+bias_poisson <- est_beta_poisson - beta
+list(Estimate = est_beta_poisson, Bias = bias_poisson)
+```
+
+# Results
+
+# Discussion
