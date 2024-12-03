@@ -272,26 +272,117 @@ annotate_figure(
 
 ## AIM 3
 ```{r}
-simulate_poisson_data <- function(n_clusters, n_obs_per_cluster, alpha, beta, gamma2) {
-  cluster_effects <- rnorm(n_clusters, 0, sqrt(gamma2)) # Random cluster effects
-  cluster_data <- data.frame(cluster_id = rep(1:n_clusters, each = n_obs_per_cluster),
-                             X = rep(c(0, 1), length.out = n_clusters * n_obs_per_cluster)) # Treatment indicator
-  cluster_data$lambda <- exp(alpha + beta * cluster_data$X + cluster_effects[cluster_data$cluster_id])
-  cluster_data$Y <- rpois(n_clusters * n_obs_per_cluster, lambda = cluster_data$lambda) # Observed outcomes
-  return(cluster_data)
+simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, R, n_sim, alpha_level = 0.05) {
+  library(lme4) # For generalized linear mixed models
+  
+  # Calculate c2 from the ratio
+  c2 <- c1 / c1_c2_ratio
+  
+  # Calculate the number of observations per cluster
+  n_obs_per_cluster <- floor((B - n_clusters * c1) / (n_clusters * c2)) + 1
+  if (n_obs_per_cluster <= 0) {
+    stop("Insufficient budget for even one observation per cluster.")
+  }
+  
+  # Initialize storage for performance metrics
+  all_metrics <- data.frame(
+    beta_est = numeric(n_sim), 
+    beta_bias = numeric(n_sim), 
+    mse = numeric(n_sim), 
+    ci_coverage = numeric(n_sim),
+    p_value = numeric(n_sim)
+  )
+  
+  for (sim in 1:n_sim) {
+    # Generate random cluster effects
+    cluster_effects <- rnorm(n_clusters, 0, sqrt(gamma2))
+    
+    # Assign at least one cluster to 0 and one to 1
+    cluster_treatment <- c(0, 1, sample(c(0, 1), n_clusters - 2, replace = TRUE))
+    cluster_treatment <- sample(cluster_treatment) # Shuffle
+    
+    # Create the cluster data frame
+    cluster_data <- data.frame(
+      cluster_id = rep(1:n_clusters, each = n_obs_per_cluster),
+      X = rep(cluster_treatment, each = n_obs_per_cluster) # Treatment indicator at cluster level
+    )
+    
+    # Compute the true mean on the log scale
+    cluster_data$log_mu <- alpha + beta * cluster_data$X + cluster_effects[cluster_data$cluster_id]
+    cluster_data$mu <- exp(cluster_data$log_mu) * R  # Scale by R to reflect summed Poisson outcomes
+    cluster_data$Y <- rpois(n = nrow(cluster_data), lambda = cluster_data$mu)
+    
+    # Fit a generalized linear mixed-effects model with Poisson family
+    model <- tryCatch({
+      glmer(Y ~ X + (1 | cluster_id), family = poisson, data = cluster_data)
+    }, error = function(e) NULL)
+    
+    if (is.null(model) || !"X" %in% names(fixef(model))) {
+      all_metrics[sim, ] <- c(NA, NA, NA, NA, NA)
+      next
+    }
+    
+    # Extract fixed effect for X and calculate metrics
+    beta_est <- as.numeric(fixef(model)["X"])
+    beta_bias <- beta_est - beta
+    mse <- mean((cluster_data$Y - predict(model, type = "response"))^2)
+    
+    # Confidence interval and coverage
+    ci <- confint(model, parm = "X", method = "Wald")
+    ci_coverage <- ifelse(beta >= ci[1] && beta <= ci[2], 1, 0)
+    p_value <- summary(model)$coefficients["X", "Pr(>|z|)"]
+    
+    # Store results
+    all_metrics[sim, ] <- c(beta_est, beta_bias, mse, ci_coverage, p_value)
+  }
+  
+  # Compute additional metrics
+  power <- mean(all_metrics$p_value < alpha_level & !is.na(all_metrics$p_value) & beta != 0, na.rm = TRUE)
+  type_I_error <- mean(all_metrics$p_value < alpha_level & !is.na(all_metrics$p_value) & beta == 0, na.rm = TRUE)
+  
+  # Compute average performance metrics
+  avg_performance <- colMeans(all_metrics, na.rm = TRUE)
+  
+  # Create output results
+  results <- data.frame(
+    n_clusters = n_clusters,
+    n_obs_per_cluster = n_obs_per_cluster,
+    true_beta = beta,
+    true_gamma2 = gamma2,
+    c1 = c1,
+    c1_c2_ratio = c1_c2_ratio,
+    avg_beta_est = avg_performance["beta_est"],
+    avg_beta_bias = avg_performance["beta_bias"],
+    avg_mse = avg_performance["mse"],
+    avg_ci_coverage = avg_performance["ci_coverage"],
+    power = power,
+    type_I_error = type_I_error
+  )
+  
+  # Return a list with simulated data and results
+  return(list(
+    cluster_data = cluster_data, # Return one simulated dataset
+    results = results
+  ))
 }
 
-# Simulate data
-sim_data_poisson <- simulate_poisson_data(n_clusters, n_obs_per_cluster, alpha, beta, gamma2)
+# Run Simulation
+results <- simulate_data_poisson(
+  n_clusters = 20, 
+  B = 2000, 
+  c1 = 10, 
+  c1_c2_ratio = 2, 
+  alpha = 2, 
+  beta = 1.5, 
+  gamma2 = 1, 
+  R = 10, 
+  n_sim = 100, 
+  alpha_level = 0.05
+)
 
-# Fit a Poisson GLMM
-fit_poisson <- glmer(Y ~ X + (1 | cluster_id), data = sim_data_poisson, family = poisson)
-summary(fit_poisson)
-
-# Evaluate performance
-est_beta_poisson <- fixef(fit_poisson)["X"]
-bias_poisson <- est_beta_poisson - beta
-list(Estimate = est_beta_poisson, Bias = bias_poisson)
+# View Results
+results$results
+head(results$cluster_data)
 ```
 
 # Results
