@@ -271,6 +271,8 @@ annotate_figure(
 ```
 
 ## AIM 3
+
+
 ```{r}
 simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, R, n_sim, alpha_level = 0.05) {
   library(lme4) # For generalized linear mixed models
