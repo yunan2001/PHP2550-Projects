@@ -7,6 +7,7 @@ output: pdf_document
 ```{r}
 library(tidyverse)
 library(lmerTest)
+library(lme4)
 library(dplyr)
 library(ggplot2)
 library(ggpubr)
@@ -83,6 +84,7 @@ simulate_data <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, s
   }
   
   # Compute additional metrics
+  beta_est_var <- var(all_metrics$beta_est)
   power <- mean(all_metrics$p_value < alpha_level & beta != 0) # True effect detected
   type_I_error <- mean(all_metrics$p_value < alpha_level & beta == 0) # False positives
   
@@ -101,6 +103,7 @@ simulate_data <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, s
     avg_beta_bias = avg_performance["beta_bias"],
     avg_mse = avg_performance["mse"],
     avg_ci_coverage = avg_performance["ci_coverage"],
+    beta_est_var = beta_est_var,
     power = power,
     type_I_error = type_I_error
   )
@@ -133,7 +136,7 @@ results$results
 ## AIM 2: 
 Explore relationships between the underlying data generation mechanism parameters and the relative costs c1/c2 and how these impact the optimal study design.
 ```{r}
-simulate_data_varying <- function(n_clusters_seq, c1_c2_ratios, sigma2_values, B, c1, alpha, beta, gamma2, n_sim, alpha_level = 0.05) {
+simulate_data_varying <- function(n_clusters_seq, c1_c2_ratios, B, c1, alpha, beta, sigma2, gamma2, n_sim, alpha_level = 0.05) {
   
   # Initialize storage for all results
   all_results <- list()
@@ -141,27 +144,133 @@ simulate_data_varying <- function(n_clusters_seq, c1_c2_ratios, sigma2_values, B
   # Loop over parameter grid
   for (n_clusters in n_clusters_seq) {
     for (c1_c2_ratio in c1_c2_ratios) {
-      for (sigma2 in sigma2_values) {
+      # Run simulation for current parameter set
+      sim_result <- simulate_data(
+        n_clusters = n_clusters, 
+        B = B, 
+        c1 = c1, 
+        c1_c2_ratio = c1_c2_ratio, 
+        alpha = alpha, 
+        beta = beta, 
+        gamma2 = gamma2, 
+        sigma2 = sigma2, 
+        n_sim = n_sim, 
+        alpha_level = alpha_level
+      )
+      
+      # Add parameter values to the results
+      results_with_params <- sim_result$results %>%
+        mutate(
+          n_clusters = n_clusters,
+          c1_c2_ratio = c1_c2_ratio
+        )
+      
+      # Store combined results
+      all_results <- append(all_results, list(results_with_params))
+    }
+  }
+  
+  # Combine all results into a single data frame
+  combined_results <- bind_rows(all_results)
+  return(combined_results)
+}
+
+# Parameters for testing
+n_clusters_seq <- seq(10, 50, 5)
+c1_c2_ratios <- c(2, 5, 10, 20)
+
+B <- 100000
+c1 <- 1000
+alpha <- 2
+beta <- 1.5
+sigma2 <- 1
+gamma2 <- 1
+n_sim <- 100
+
+# Run simulations over the grid
+varying_results <- simulate_data_varying(
+  n_clusters_seq = n_clusters_seq,
+  c1_c2_ratios = c1_c2_ratios,
+  B = B,
+  c1 = c1,
+  alpha = alpha,
+  beta = beta,
+  sigma2 = sigma2,
+  gamma2 = gamma2,
+  n_sim = n_sim
+)
+
+# Assign colors for the c1/c2 ratio
+colors <- c(
+  "2" = brewer.pal(9, "YlOrRd")[4],  # Moderate orange
+  "5" = brewer.pal(9, "YlOrRd")[6],  # Deeper orange-red
+  "10" = brewer.pal(9, "YlOrRd")[8],  # Dark red
+  "20" = brewer.pal(9, "YlOrRd")[9]
+)
+
+
+# Plot with adjusted text position
+ggplot(varying_results, aes(x = n_clusters, y = beta_est_var)) +
+  geom_line(aes(color = as.factor(c1_c2_ratio)), size = 1) +
+  geom_point(aes(color = as.factor(c1_c2_ratio)), size = 2) +
+  geom_text(aes(label = n_obs_per_cluster, color = as.factor(c1_c2_ratio)),
+            position = position_nudge(y = 0.025, x=2.2),  # Nudging text upward
+            size = 2, check_overlap = TRUE) +
+  scale_color_manual(values = colors, name = "Relative costs (c1/c2)") +
+  facet_wrap(~c1_c2_ratio, nrow = 1) +
+  labs(
+    title = "Variance of Beta Estimates vs. Number of Clusters",
+    x = "Number of Clusters",
+    y = "Variance of Beta Estimates"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    legend.position = "right"
+  )
+```
+
+```{r}
+# Function to simulate for different sigma2 and beta
+simulate_varying_sigma_beta <- function(optimal_config, sigma2_values, beta_values, B, c1, gamma2, n_sim, alpha_level = 0.05) {
+  
+  # Initialize storage for all results
+  all_results <- list()
+  
+  # Loop over each optimal configuration
+  for (row in seq_len(nrow(optimal_config))) {
+    n_clusters <- optimal_config$n_clusters[row]
+    n_obs_per_cluster <- optimal_config$n_obs_per_cluster[row]
+    c1_c2_ratio <- optimal_config$c1_c2_ratio[row]
+    
+    for (sigma2 in sigma2_values) {
+      for (beta in beta_values) {
         # Run simulation for current parameter set
         sim_result <- simulate_data(
-          n_clusters = n_clusters, 
-          B = B, 
-          c1 = c1, 
-          c1_c2_ratio = c1_c2_ratio, 
-          alpha = alpha, 
-          beta = beta, 
-          gamma2 = gamma2, 
-          sigma2 = sigma2, 
-          n_sim = n_sim, 
+          n_clusters = n_clusters,
+          B = B,
+          c1 = c1,
+          c1_c2_ratio = c1_c2_ratio,
+          alpha = 0,  # Assuming alpha is constant
+          beta = beta,
+          gamma2 = gamma2,
+          sigma2 = sigma2,
+          n_sim = n_sim,
           alpha_level = alpha_level
         )
         
         # Add parameter values to the results
         results_with_params <- sim_result$results %>%
-          mutate(n_clusters = n_clusters,
-                 c1_c2_ratio = c1_c2_ratio,
-                 sigma2 = sigma2)
-
+          mutate(
+            sigma2 = sigma2,
+            beta = beta,
+            c1_c2_ratio = c1_c2_ratio,
+            n_clusters = n_clusters,
+            n_obs_per_cluster = n_obs_per_cluster
+          )
+        
         # Store combined results
         all_results <- append(all_results, list(results_with_params))
       }
@@ -173,218 +282,184 @@ simulate_data_varying <- function(n_clusters_seq, c1_c2_ratios, sigma2_values, B
   return(combined_results)
 }
 
+# Extract optimal configurations from varying_results
+optimal_config <- varying_results %>%
+  group_by(c1_c2_ratio) %>%
+  summarize(
+    n_clusters = n_clusters[which.min(beta_est_var)],  # Optimal number of clusters
+    n_obs_per_cluster = n_obs_per_cluster[which.min(beta_est_var)]
+  )
+
 # Parameter values
-n_clusters_seq <- seq(2, 10, 1)
-c1_c2_ratios <- c(2, 5, 10)
-sigma2_values <- c(0.01, 0.1, 0.5)
-B <- 2000
-c1 <- 10
-alpha <- 2
-beta <- 1.5
+sigma2_values <- seq(0.01, 10, length.out=10)
+beta_values <- c(0.05, 0.5, 1, 1.5)
+B <- 100000
+c1 <- 1000
 gamma2 <- 1
 n_sim <- 100
 
-# Run simulations over the grid
-varying_results <- simulate_data_varying(
-  n_clusters_seq = n_clusters_seq,
-  c1_c2_ratios = c1_c2_ratios,
+# Run simulations
+final_results <- simulate_varying_sigma_beta(
+  optimal_config = optimal_config,
   sigma2_values = sigma2_values,
+  beta_values = beta_values,
   B = B,
   c1 = c1,
-  alpha = alpha,
-  beta = beta,
   gamma2 = gamma2,
   n_sim = n_sim
 )
 
-# View results
-print(varying_results)
-```
 
+final_results_long <- final_results %>%
+  pivot_longer(cols = c(avg_beta_est, beta_est_var, power, avg_ci_coverage), 
+               names_to = "metric", 
+               values_to = "value")
 
-```{r}
-# Assuming 'varying_results' contains the simulation results
-# Modify the data for clarity in plot labels
-plot_data <- varying_results %>%
-  rename(
-    ICC = true_sigma, # Rename true_sigma to ICC for consistency with the plot
-    n_clusters = n_clusters,
-    sigma2 = sigma2
-  )
-
-# Define metrics to plot
-metrics <- c("avg_beta_est", "avg_beta_bias", "avg_mse", 
-             "avg_ci_coverage", "power"
-             #, "type_I_error"
-             )
-metric_labels <- c(
-  "Average Beta Estimate", 
-  "Average Beta Bias", 
-  "Mean Squared Error (MSE)", 
-  "Coverage Probability", 
-  "Power", 
-  "Type I Error"
+# Define y-axis limits for each metric
+y_limits <- list(
+  power = c(0, 1),
+  beta_est_var = c(0, max(final_results$beta_est_var, na.rm = TRUE)),
+  avg_ci_coverage = c(0.8, 1)
 )
 
-# Initialize an empty list to store plots
-plots <- list()
-
-# Create a plot for each metric
-for (i in seq_along(metrics)) {
-  metric <- metrics[i]
-  metric_label <- metric_labels[i]
-  
-  p <- ggplot(plot_data, aes(x = n_clusters, y = .data[[metric]], color = factor(c1_c2_ratio))) +
-    geom_line() +
-    geom_point() +
-    facet_wrap(~sigma2, scales = "free_y", labeller = label_both) +
+# Updated function to create a plot for a given metric
+plot_metric_consistent_y <- function(metric, metric_label) {
+  ggplot(final_results, aes(x = sigma2, y = .data[[metric]], color = as.factor(c1_c2_ratio))) +
+    geom_line(size = 1) +
+    geom_point(size = 2) +
+    facet_wrap(~ true_beta, scales = "fixed") +  # Facet by beta with fixed scales
+    scale_color_manual(values = colors, name = "c1/c2 Ratio") +
+    coord_cartesian(ylim = y_limits[[metric]]) +  # Set consistent y-axis range
     labs(
-      x = "# of Clusters",
-      y = metric_label,
-      color = "c1/c2 Ratio",
-      title = metric_label
+      title = paste(metric_label, "by Sigma^2, Faceted by Beta"),
+      x = expression(sigma^2),
+      y = metric_label
     ) +
     theme_minimal() +
     theme(
-      strip.text = element_text(size = 10),
-      axis.title = element_text(size = 12),
-      legend.title = element_text(size = 10),
+      plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+      strip.text = element_text(size = 10, face = "bold"),
       legend.position = "bottom"
     )
-  
-  # Add the plot to the list
-  plots[[i]] <- p
 }
 
-# Arrange all plots into one figure using ggarrange
-combined_plot <- ggarrange(
-  plots[[1]], plots[[2]], plots[[3]],
-  plots[[4]], plots[[5]], plots[[6]],
-  ncol = 2, nrow = 3, common.legend = TRUE, legend = "bottom"
-)
+# Generate plots for each metric
+plot_beta_est_var <- plot_metric_consistent_y("beta_est_var", "Variance of Beta Estimate")
+plot_power <- plot_metric_consistent_y("power", "Power")
+plot_avg_ci_coverage <- plot_metric_consistent_y("avg_ci_coverage", "Average CI Coverage")
 
-# Annotate the combined plot with a title
-annotate_figure(
-  combined_plot,
-  top = text_grob("Simulation Results Across Metrics", size = 14, face = "bold")
-)
+# Display the plots (one at a time)
+print(plot_beta_est_var)
+print(plot_power)
+print(plot_avg_ci_coverage)
 ```
 
-## AIM 3
 
+## AIM 3
+poisson: change the mean will change the results
 
 ```{r}
-simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, R, n_sim, alpha_level = 0.05) {
-  library(lme4) # For generalized linear mixed models
+simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, n_sim, alpha_level = 0.05) {
   
   # Calculate c2 from the ratio
   c2 <- c1 / c1_c2_ratio
   
   # Calculate the number of observations per cluster
   n_obs_per_cluster <- floor((B - n_clusters * c1) / (n_clusters * c2)) + 1
-  if (n_obs_per_cluster <= 0) {
-    stop("Insufficient budget for even one observation per cluster.")
-  }
   
-  # Initialize storage for performance metrics
+  # Generate random cluster-level effects (log scale)
+  cluster_effects <- rnorm(n_clusters, mean = 0, sd = sqrt(gamma2))
+  
+  # Assign clusters to treatment (X = 1) or control (X = 0)
+  cluster_treatment <- sample(c(0, 1), n_clusters, replace = TRUE)
+  
+  # Initialize storage for metrics
   all_metrics <- data.frame(
-    beta_est = numeric(n_sim), 
-    beta_bias = numeric(n_sim), 
-    mse = numeric(n_sim), 
-    ci_coverage = numeric(n_sim),
-    p_value = numeric(n_sim)
+    beta_est = numeric(n_sim),
+    beta_bias = numeric(n_sim),
+    power = numeric(n_sim),
+    coverage = numeric(n_sim)
   )
   
   for (sim in 1:n_sim) {
-    # Generate random cluster effects
-    cluster_effects <- rnorm(n_clusters, 0, sqrt(gamma2))
+    # Generate cluster-level means (log scale)
+    log_mu <- alpha + beta * cluster_treatment + cluster_effects
+    mu <- exp(log_mu)  # Mean on original scale
     
-    # Assign at least one cluster to 0 and one to 1
-    cluster_treatment <- c(0, 1, sample(c(0, 1), n_clusters - 2, replace = TRUE))
-    cluster_treatment <- sample(cluster_treatment) # Shuffle
-    
-    # Create the cluster data frame
+    # Generate unit-level Poisson outcomes for each cluster
     cluster_data <- data.frame(
       cluster_id = rep(1:n_clusters, each = n_obs_per_cluster),
-      X = rep(cluster_treatment, each = n_obs_per_cluster) # Treatment indicator at cluster level
+      X = rep(cluster_treatment, each = n_obs_per_cluster),
+      Y = rpois(n_clusters * n_obs_per_cluster, lambda = mu[rep(1:n_clusters, each = n_obs_per_cluster)])
     )
     
-    # Compute the true mean on the log scale
-    cluster_data$log_mu <- alpha + beta * cluster_data$X + cluster_effects[cluster_data$cluster_id]
-    cluster_data$mu <- exp(cluster_data$log_mu) * R  # Scale by R to reflect summed Poisson outcomes
-    cluster_data$Y <- rpois(n = nrow(cluster_data), lambda = cluster_data$mu)
-    
-    # Fit a generalized linear mixed-effects model with Poisson family
-    model <- tryCatch({
-      glmer(Y ~ X + (1 | cluster_id), family = poisson, data = cluster_data)
-    }, error = function(e) NULL)
-    
-    if (is.null(model) || !"X" %in% names(fixef(model))) {
-      all_metrics[sim, ] <- c(NA, NA, NA, NA, NA)
-      next
-    }
+    # Fit a Poisson GLMM with random intercept for clusters
+    model <- glmer(Y ~ X + (1 | cluster_id), data = cluster_data, family = poisson())
     
     # Extract fixed effect for X and calculate metrics
-    beta_est <- as.numeric(fixef(model)["X"])
-    beta_bias <- beta_est - beta
-    mse <- mean((cluster_data$Y - predict(model, type = "response"))^2)
-    
-    # Confidence interval and coverage
+    beta_est <- fixef(model)["X"]
     ci <- confint(model, parm = "X", method = "Wald")
-    ci_coverage <- ifelse(beta >= ci[1] && beta <= ci[2], 1, 0)
+    ci_coverage <- (beta >= ci[1] & beta <= ci[2])  # Check if CI covers true beta
     p_value <- summary(model)$coefficients["X", "Pr(>|z|)"]
     
-    # Store results
-    all_metrics[sim, ] <- c(beta_est, beta_bias, mse, ci_coverage, p_value)
+    # Store simulation results
+    all_metrics[sim, ] <- c(
+      beta_est = beta_est,
+      beta_bias = beta_est - beta,
+      power = ifelse(p_value < alpha_level, 1, 0),
+      coverage = ci_coverage
+    )
   }
-  
   # Compute additional metrics
-  power <- mean(all_metrics$p_value < alpha_level & !is.na(all_metrics$p_value) & beta != 0, na.rm = TRUE)
-  type_I_error <- mean(all_metrics$p_value < alpha_level & !is.na(all_metrics$p_value) & beta == 0, na.rm = TRUE)
+  beta_est_var <- var(all_metrics$beta_est)
+
+  # Compute summary metrics
+  avg_metrics <- colMeans(all_metrics)
   
-  # Compute average performance metrics
-  avg_performance <- colMeans(all_metrics, na.rm = TRUE)
-  
-  # Create output results
+  # Return results
   results <- data.frame(
     n_clusters = n_clusters,
     n_obs_per_cluster = n_obs_per_cluster,
     true_beta = beta,
-    true_gamma2 = gamma2,
-    c1 = c1,
-    c1_c2_ratio = c1_c2_ratio,
-    avg_beta_est = avg_performance["beta_est"],
-    avg_beta_bias = avg_performance["beta_bias"],
-    avg_mse = avg_performance["mse"],
-    avg_ci_coverage = avg_performance["ci_coverage"],
-    power = power,
-    type_I_error = type_I_error
+    beta_est_mean = avg_metrics["beta_est"],
+    beta_bias_mean = avg_metrics["beta_bias"],
+    beta_est_var = beta_est_var,
+    power = avg_metrics["power"],
+    ci_coverage = avg_metrics["coverage"]
   )
   
-  # Return a list with simulated data and results
   return(list(
-    cluster_data = cluster_data, # Return one simulated dataset
-    results = results
+    metrics = results,
+    simulated_data = cluster_data
   ))
 }
 
-# Run Simulation
+# Parameters
+n_clusters <- 50
+B <- 100000
+c1 <- 1000
+c1_c2_ratio <- 2
+alpha <- 0
+beta <- 0.1
+gamma2 <- 1
+n_sim <- 100
+alpha_level <- 0.05
+
+# Run simulation
 results <- simulate_data_poisson(
-  n_clusters = 20, 
-  B = 2000, 
-  c1 = 10, 
-  c1_c2_ratio = 2, 
-  alpha = 2, 
-  beta = 1.5, 
-  gamma2 = 1, 
-  R = 10, 
-  n_sim = 100, 
-  alpha_level = 0.05
+  n_clusters = n_clusters,
+  B = B,
+  c1 = c1,
+  c1_c2_ratio = c1_c2_ratio,
+  alpha = alpha,
+  beta = beta,
+  gamma2 = gamma2,
+  n_sim = n_sim,
+  alpha_level = alpha_level
 )
 
-# View Results
-results$results
-head(results$cluster_data)
+# View results
+print(results$metrics)
 ```
 
 # Results
