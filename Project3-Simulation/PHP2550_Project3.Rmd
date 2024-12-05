@@ -926,11 +926,15 @@ simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, g
     mu <- exp(log_mu)  
     
     # generate individual-level Poisson outcomes for each cluster
-    cluster_data <- data.frame(
-      cluster_id = rep(1:n_clusters, each = n_obs_per_cluster),
-      X = rep(cluster_treatment, each = n_obs_per_cluster),
-      Y = rpois(n_clusters * n_obs_per_cluster, lambda = mu[rep(1:n_clusters, each = n_obs_per_cluster)])
-    )
+    # cluster_data <- data.frame(
+    #   cluster_id = rep(1:n_clusters, each = n_obs_per_cluster),
+    #   X = rep(cluster_treatment, each = n_obs_per_cluster),
+    #   Y = rpois(n_clusters * n_obs_per_cluster, lambda = mu[rep(1:n_clusters, each = n_obs_per_cluster)])
+    # )
+  cluster_data <- data.frame(
+  cluster_id = rep(1:n_clusters, each = n_obs_per_cluster)[1:(n_clusters * n_obs_per_cluster)],
+  X = rep(cluster_treatment, each = n_obs_per_cluster)[1:(n_clusters * n_obs_per_cluster)],
+  Y = rpois(n_clusters * n_obs_per_cluster, lambda = mu[rep(1:n_clusters, each = n_obs_per_cluster)])[1:(n_clusters * n_obs_per_cluster)])
     
     # fit a Poisson GLM with random intercept for clusters
     model <- lme4::glmer(Y ~ X + (1 | cluster_id), data = cluster_data, family = poisson())
