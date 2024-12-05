@@ -655,6 +655,9 @@ varying_results <- simulate_data_varying(
   n_sim = n_sim
 )
 
+write.csv(varying_results, "varying_results.csv")
+varying_results <- read.csv("varying_results.csv")
+
 # Assign colors for the c1/c2 ratio
 colors <- c(
   "2" = brewer.pal(9, "YlOrRd")[4],  # Moderate orange
@@ -824,7 +827,7 @@ optimal_config <- varying_results %>%
   )
 
 # Parameter values
-sigma2_values <- seq(0.01, 10, length.out=10)
+sigma2_values <- seq(0.1, 10, length.out=10)
 beta_values <- c(0.05, 0.5, 1.5)
 B <- 2000
 c1 <- 20
@@ -842,6 +845,8 @@ final_results <- simulate_varying_sigma_beta(
   n_sim = n_sim
 )
 
+write.csv(final_results, "final_results.csv")
+final_results <- read.csv("final_results.csv")
 
 final_results_long <- final_results %>%
   pivot_longer(cols = c(avg_beta_est, beta_est_var, power, avg_ci_coverage), 
@@ -879,12 +884,12 @@ plot_metric_consistent_y <- function(metric, metric_label) {
 # Generate plots for each metric
 plot_beta_est_var <- plot_metric_consistent_y("beta_est_var", "Variance of Beta Estimate")
 plot_power <- plot_metric_consistent_y("power", "Power")
-# plot_avg_ci_coverage <- plot_metric_consistent_y("avg_ci_coverage", "Average CI Coverage")
+plot_avg_ci_coverage <- plot_metric_consistent_y("avg_ci_coverage", "Average CI Coverage")
 
 # Display the plots (one at a time)
 print(plot_beta_est_var)
 print(plot_power)
-# print(plot_avg_ci_coverage)
+print(plot_avg_ci_coverage)
 ```
 
 
@@ -894,13 +899,13 @@ poisson: change the mean will change the results
 ```{r}
 simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, n_sim, alpha_level = 0.05) {
   
-  # Calculate c2 from the ratio
+  # calculate c2 from the ratio
   c2 <- c1 / c1_c2_ratio
   
-  # Calculate the number of observations per cluster
+  # calculate the number of observations per cluster
   n_obs_per_cluster <- floor((B - n_clusters * c1) / (n_clusters * c2)) + 1
   
-  # Generate random cluster-level effects (log scale)
+  # generate random cluster-level effects (log scale)
   cluster_effects <- rnorm(n_clusters, mean = 0, sd = sqrt(gamma2))
   
   # Assign clusters to treatment (X = 1) or control (X = 0)
@@ -1045,7 +1050,8 @@ combined_results <- evaluate_configurations(
   alpha_level = 0.05
 )
 
-
+write.csv(combined_results, "combined_results.csv")
+combined_results <- read.csv("combined_results.csv")
 
 # Assign colors for the c1/c2 ratio
 colors_poisson <- c(
@@ -1114,12 +1120,20 @@ simulate_varying_gamma2_beta <- function(optimal_config, gamma2_values, beta_val
 }
 
 # Define parameter values
-beta_values <- c(0.05, 0.5, 1.5)
+# beta_values <- c(0.05, 0.5, 1.5)
+beta_values <- c(1.5, 3, 5)
 gamma2_values <- seq(0.1, 10, length.out = 10)
+# Extract optimal configurations from varying_results
+optimal_config_poisson <- combined_results %>%
+  group_by(c1_c2_ratio) %>%
+  summarize(
+    n_clusters = n_clusters[which.min(beta_est_var)],  # Optimal number of clusters
+    n_obs_per_cluster = n_obs_per_cluster[which.min(beta_est_var)]
+  )
 
 # Run the simulation
-final_results <- simulate_varying_gamma2_beta(
-  optimal_config = optimal_config,
+final_results_poisson <- simulate_varying_gamma2_beta(
+  optimal_config = optimal_config_poisson,
   gamma2_values = gamma2_values,
   beta_values = beta_values,
   B = 2000,
@@ -1128,16 +1142,18 @@ final_results <- simulate_varying_gamma2_beta(
   alpha_level = 0.05
 )
 
+write.csv(final_results_poisson, "final_results_poisson.csv")
+final_results_poisson <- read.csv("final_results_poisson.csv")
 
 # Step 4: Visualize results
-final_results_long <- final_results %>%
+final_results_long <- final_results_poisson %>%
   pivot_longer(cols = c(beta_est_var, power, ci_coverage), 
                names_to = "metric", 
                values_to = "value")
 
 # Define consistent y-limits for each metric
 y_limits <- list(
-  beta_est_var = c(0, max(final_results$beta_est_var, na.rm = TRUE)),
+  beta_est_var = c(0, max(final_results_poisson$beta_est_var, na.rm = TRUE)),
   power = c(0, 1),
   ci_coverage = c(0.8, 1)
 )
@@ -1171,9 +1187,13 @@ print(plot_beta_est_var)
 plot_power <- plot_metric_consistent_y("power", "Power")
 print(plot_power)
 
+# Plot power
+plot_coverage <- plot_metric_consistent_y("ci_coverage", "Coverage")
+print(plot_coverage)
 ```
 ## Comparison
 ```{r}
+
 ```
 
 
