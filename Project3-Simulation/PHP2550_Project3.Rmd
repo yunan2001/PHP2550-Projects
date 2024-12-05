@@ -898,18 +898,16 @@ poisson: change the mean will change the results
 
 ```{r}
 simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, n_sim, alpha_level = 0.05) {
-  set.seed(2550)
+  #set.seed(2556)
   # calculate c2 from the ratio
   c2 <- c1 / c1_c2_ratio
   
   # calculate the number of observations per cluster
   n_obs_per_cluster <- floor((B - n_clusters * c1) / (n_clusters * c2)) + 1
-  
-  # generate random cluster-level effects (log scale)
-  cluster_effects <- rnorm(n_clusters, mean = alpha, sd = sqrt(gamma2))
+
   
   # assign clusters to treatment (X = 1) or control (X = 0)
-  cluster_treatment <- sample(c(0, 1), n_clusters, replace = TRUE)
+  cluster_treatment <- rep(c(0,1), n_clusters/2) #sample(c(0, 1), n_clusters, replace = TRUE)
   
   # initialize data frame
   all_metrics <- data.frame(
@@ -920,6 +918,9 @@ simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, g
   )
   
   for (sim in 1:n_sim) {
+    
+    # generate random cluster-level effects (log scale)
+    cluster_effects <- rnorm(n_clusters, mean = alpha, sd = sqrt(gamma2))
     # generate cluster-level means (log scale)
     log_mu <- alpha + beta * cluster_treatment + cluster_effects
     mu <- exp(log_mu)  
@@ -980,10 +981,11 @@ n_clusters <- 10
 B <- 2000
 c1 <- 20
 c1_c2_ratio <- 5
-alpha <- 2
-beta <- 1.5
-gamma2 <- 5
+alpha <- 1
+beta <- 1
+gamma2 <- 0.5
 n_sim <- 100
+alpha_level <- 0.05
 
 # Run simulation
 results <- simulate_data_poisson(
