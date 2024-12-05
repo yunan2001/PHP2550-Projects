@@ -898,7 +898,7 @@ poisson: change the mean will change the results
 
 ```{r}
 simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, n_sim, alpha_level = 0.05) {
-  
+  set.seed(2550)
   # calculate c2 from the ratio
   c2 <- c1 / c1_c2_ratio
   
@@ -906,12 +906,12 @@ simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, g
   n_obs_per_cluster <- floor((B - n_clusters * c1) / (n_clusters * c2)) + 1
   
   # generate random cluster-level effects (log scale)
-  cluster_effects <- rnorm(n_clusters, mean = 0, sd = sqrt(gamma2))
+  cluster_effects <- rnorm(n_clusters, mean = alpha, sd = sqrt(gamma2))
   
-  # Assign clusters to treatment (X = 1) or control (X = 0)
+  # assign clusters to treatment (X = 1) or control (X = 0)
   cluster_treatment <- sample(c(0, 1), n_clusters, replace = TRUE)
   
-  # Initialize storage for metrics
+  # initialize data frame
   all_metrics <- data.frame(
     beta_est = numeric(n_sim),
     beta_bias = numeric(n_sim),
@@ -920,27 +920,27 @@ simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, g
   )
   
   for (sim in 1:n_sim) {
-    # Generate cluster-level means (log scale)
+    # generate cluster-level means (log scale)
     log_mu <- alpha + beta * cluster_treatment + cluster_effects
-    mu <- exp(log_mu)  # Mean on original scale
+    mu <- exp(log_mu)  
     
-    # Generate unit-level Poisson outcomes for each cluster
+    # generate individual-level Poisson outcomes for each cluster
     cluster_data <- data.frame(
       cluster_id = rep(1:n_clusters, each = n_obs_per_cluster),
       X = rep(cluster_treatment, each = n_obs_per_cluster),
       Y = rpois(n_clusters * n_obs_per_cluster, lambda = mu[rep(1:n_clusters, each = n_obs_per_cluster)])
     )
     
-    # Fit a Poisson GLMM with random intercept for clusters
-    model <- glmer(Y ~ X + (1 | cluster_id), data = cluster_data, family = poisson())
+    # fit a Poisson GLM with random intercept for clusters
+    model <- lme4::glmer(Y ~ X + (1 | cluster_id), data = cluster_data, family = poisson())
     
-    # Extract fixed effect for X and calculate metrics
+    # extract fixed effect for X and calculate metrics
     beta_est <- fixef(model)["X"]
     ci <- confint(model, parm = "X", method = "Wald")
-    ci_coverage <- (beta >= ci[1] & beta <= ci[2])  # Check if CI covers true beta
+    ci_coverage <- (beta >= ci[1] & beta <= ci[2]) 
     p_value <- summary(model)$coefficients["X", "Pr(>|z|)"]
     
-    # Store simulation results
+    # store simulation results
     all_metrics[sim, ] <- c(
       beta_est = beta_est,
       beta_bias = beta_est - beta,
@@ -948,10 +948,11 @@ simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, g
       coverage = ci_coverage
     )
   }
-  # Compute additional metrics
+  
+  # Compute performance 
   beta_est_var <- var(all_metrics$beta_est)
-
-  # Compute summary metrics
+  min_beta_est <- min(all_metrics$beta_est)
+  max_beta_est <- max(all_metrics$beta_est)
   avg_metrics <- colMeans(all_metrics)
   
   # Return results
@@ -960,6 +961,8 @@ simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, g
     n_obs_per_cluster = n_obs_per_cluster,
     true_beta = beta,
     beta_est_mean = avg_metrics["beta_est"],
+    min_beta_est = min_beta_est,
+    max_beta_est = max_beta_est,
     beta_bias_mean = avg_metrics["beta_bias"],
     beta_est_var = beta_est_var,
     power = avg_metrics["power"],
@@ -973,15 +976,14 @@ simulate_data_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, g
 }
 
 # Parameters
-n_clusters <- 50
+n_clusters <- 10
 B <- 2000
-c1 <- 1000
-c1_c2_ratio <- 2
+c1 <- 20
+c1_c2_ratio <- 5
 alpha <- 2
-beta <- 0.1
-gamma2 <- 1
+beta <- 1.5
+gamma2 <- 5
 n_sim <- 100
-alpha_level <- 0.05
 
 # Run simulation
 results <- simulate_data_poisson(
@@ -998,6 +1000,7 @@ results <- simulate_data_poisson(
 
 # View results
 print(results$metrics)
+test <- results$simulated_data
 ```
 
 ```{r}
@@ -1044,7 +1047,7 @@ combined_results <- evaluate_configurations(
   B = 2000,
   c1 = 20,
   alpha = 2,
-  beta = 1.5,
+  beta = 0.5,
   gamma2 = 1,
   n_sim = 100,
   alpha_level = 0.05
