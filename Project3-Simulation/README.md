@@ -7,10 +7,17 @@ This project investigates the design of cluster randomized trials under budget c
 ### Simulation Framework
 
 The simulation framework was guided by the ADEMP (Aims, Data-generating mechanisms, Estimands, Methods, and Performance measures) framework. Simulations were conducted using both Normal and Poisson data-generating mechanisms to reflect common outcome distributions in real-world trials. Key features of the framework include:
-- **Aims**: To determine the optimal number of clusters ($G$) and measurements per cluster ($R$) under varying cost ratios ($c_1/c_2$) and variance structures.
-- **Data-Generating Mechanisms**: Simulated datasets were generated under Normal and Poisson distributions, incorporating variance components ($\sigma^2$, $\gamma^2$) and treatment effects ($\beta$).
-- **Optimization**: Resource allocation was optimized by varying $G$ and $R$ while satisfying a fixed budget constraint ($B = c_1 G + c_2 G R$).
-- **Performance Measures**: Variance and power of the treatment effect estimate ($\hat{\beta}$) were evaluated across scenarios to identify optimal designs.
+- **Aims:** Evaluate the optimal allocation of a fixed budget across clusters ($G$) and measurements per cluster ($R$), minimizing the variance of the treatment effect estimate ($\hat{\beta}$), and assess the impact of variance components ($\sigma^2$, $\gamma^2$) and treatment effects ($\beta$) on precision and power.
+    
+- **Data-Generating Mechanisms:** Simulations were conducted under:
+   - Normal Outcomes: Data generated using a hierarchical model with variance components $\sigma^2$ and $\gamma^2$.
+   - Poisson Outcomes: Data generated with a log-linear model incorporating $\gamma^2$.
+    
+- **Estimand:** The treatment effect ($\beta$), representing the difference between treatment and control groups.
+    
+- **Methods:** Simulated datasets were analyzed using GLMs to estimate $\hat{\beta}$ and evaluate variance and power.
+    
+- **Performance Measures:** Variance and power were used to assess the precision of $\hat{\beta}$ and the ability to detect treatment effects across design configurations.
 
 ### Results
 
