@@ -1,5 +1,5 @@
 ---
-title: "Project3-Simulation"
+title: "Simulation Study on Cluster Randomized Control Design"
 author: "Yunan Chen"
 date: "2024-12-02"
 output:
@@ -25,7 +25,7 @@ library(RColorBrewer)
 
 # Abstract
 
-Cluster randomized trials are widely used in public health and clinical research to evaluate treatment effects, requiring careful design to balance the number of clusters, the number of measurements per cluster, and associated costs under budget constraints. This project employs simulation studies guided by the ADEMP framework to optimize resource allocation strategies for minimizing the variance of treatment effect estimates ($\hat{\beta}$). Using Normal and Poisson data-generating mechanisms, we evaluate the impacts of relative cost ratios ($c_1/c_2$), variance components ($\sigma^2$, $\gamma^2$), and treatment effect sizes on the precision and power of $\hat{\beta}$. Results demonstrate that increasing the number of clusters reduces variance but exhibits diminishing returns, while lower cost ratios allocate more resources to within-cluster measurements, improving precision. However, distributional assumptions influence these dynamics, with Poisson outcomes showing greater sensitivity to between-cluster variability. These findings underscore the importance of tailored resource allocation strategies in designing cost-efficient and statistically robust cluster randomized trials.
+Cluster randomized trials are widely utilized in public health and clinical research to evaluate treatment effects, requiring careful design to balance the number of clusters, measurements per cluster, and associated costs under budget constraints. This study employs simulation studies guided by the ADEMP framework to optimize resource allocation strategies for minimizing the variance of treatment effect estimates ($\hat{\beta}$). Using Normal and Poisson data-generating mechanisms, we examine the impacts of cost ratios, variance components of the distributions, and treatment effect sizes on the precision and power of $\hat{\beta}$. Results demonstrate that increasing the number of clusters reduces variance but with diminishing returns, emphasizing the need for balance in resource allocation. Poisson outcomes exhibit greater sensitivity to between-cluster variability compared to Normal outcomes, reflecting differences in the hierarchical data structures and their influence on intra-class correlation (ICC). Higher ICC values reduce the effective sample size by increasing within-cluster correlation, inflating $\hat{\beta}$ variance. Conversely, lower ICC values improve the precision of $\hat{\beta}$ by enhancing the contribution of within-cluster data. These findings underscore the importance of tailoring resource allocation strategies to specific data distributions and ICC properties to design cost-efficient and statistically robust cluster randomized trials.
 
 # Introducation
 
@@ -43,15 +43,11 @@ dietary intervention on long-term glycemic control (Karimian et al.,
 2023).
 
 In our study, we consider clusters as individuals and the number of
-observations per cluster as repeated measurements of these individuals.
-Designing an efficient cluster randomized trial requires balancing the
-number of clusters, the number of repeated measurements per cluster, and
-the associated costs while maximizing statistical precision under a
-fixed budget. A critical design challenge for cluster randomized trials
+measurements per cluster as repeated measurements of these individuals. A critical design challenge for cluster randomized trials
 lies in allocating a fixed budget to maximize the precision of treatment
 effect estimates. This challenge is further complicated by uncertainties
 in intracluster correlation coefficients, which measure within-cluster
-similarity. While independent observations are generally preferred for
+similarity. While independent measurements are generally preferred for
 statistical power, budget constraints often necessitate strategic
 trade-offs between the number of clusters and the number of measurements
 per cluster. In some cases, obtaining additional measurements within the
@@ -66,7 +62,7 @@ Department, aims to develop a simulation study to identify optimal
 cluster randomized trial designs under budgetary constraints. Using
 simulation studies guided by the aim, data structure, estimand, methods,
 and performance (ADEMP) framework, the study systematically explores
-trade-offs between cluster-level and within-cluster observations under
+trade-offs between cluster-level and within-cluster measurements under
 varying cost structures and statistical assumptions. By evaluating
 resource allocation strategies, the project provides practical
 recommendations for designing cost-effective and statistically robust
@@ -97,10 +93,7 @@ ensures methodological rigor, enhances reproducibility, and provides a
 comprehensive evaluation of statistical methods within the context of
 simulation-based research.
 
-## Simulation Framework
-
-The simulation study adheres to the ADEMP framework to evaluate optimal designs for cluster randomized trials under budget
-constraints.
+## Simulation framework
 
 **Aims:**
 
@@ -109,20 +102,22 @@ To evaluate the impacts (1) of the optimal allocation of a fixed budget across t
 
 **Data-Generating Mechanisms:** 
 
-- Normal Outcomes: For observation $j = 1, \cdots, R$ within cluster $i = 1, \cdots, G$, generate the data under the hierarchical structure:
+- Normal Outcomes: For measurement $j = 1, \cdots, R$ within cluster $i = 1, \cdots, G$, generate the data under the hierarchical structure:
 \begin{align*}
-        \mu_{i0} &= \alpha + \beta X_i \quad \text{(fixed effects, where $X_i = 0$ for control and $X_i = 1$ for treatment)}, \\
+        \mu_{i0} &= \alpha + \beta X_i \quad \text{where $X_i = 0$ for control and $X_i = 1$ for treatment}, \\
         \mu_i \mid \epsilon_i &= \mu_{i0} + \epsilon_i, \quad \epsilon_i \sim N(0, \gamma^2), \\
         Y_{ij} \mid \mu_i &= \mu_i + e_{ij}, \quad e_{ij} \sim N(0, \sigma^2).
     \end{align*} 
     
--   Poisson Outcomes: For observation $j = 1, \cdots, R$ within cluster $i = 1, \cdots, G$, let:
+-   Poisson Outcomes: For measurement $j = 1, \cdots, R$ within cluster $i = 1, \cdots, G$, let:
     \begin{align*}
           \log(\mu_i) &\sim N(\alpha + \beta X_i, \gamma^2), \quad \text{where $X_i = 0$ for control and $X_i = 1$ for treatment}, \\
-          Y_{ij} \mid \mu_i &\sim \text{Poisson}(\mu_i), \quad \text{for } j = 1, \ldots, R
+          Y_{ij} \mid \mu_i &\sim \text{Poisson}(\mu_i)
       \end{align*}
 
-**Estimand:** The primary estimand is the treatment effect, $\beta$,
+**Estimand:** 
+
+The primary estimand is the treatment effect, $\beta$,
 which quantifies the difference in outcomes between the treatment
 ($X_i = 1$) and control ($X_i = 0$) groups. For Normal outcomes, $\beta$
 represents the average difference in means. For Poisson outcomes,
@@ -136,35 +131,35 @@ For each simulation, the generated data set ($X$, $Y$) under normal or Poisson d
 
 We will assess the performance of the study design using two key metrics: variance and power. Variance measures the variability of $\hat{\beta}$ across simulations, providing insights into how design parameters, such as the number of clusters and measurements per cluster, impact the precision of the treatment effect estimate. Power quantifies the ability to detect significant treatment effects by calculating the proportion of simulations where $\hat{\beta}$ is significantly different from zero. This evaluation focuses on the influence of cost ratios and variability parameters on the statistical power of the study design.
 
-## Varying parameters
+## Simulation process
 
-The optimization process involved two major steps. First, we fixed the
+The simulation process involved two major steps. First, we fixed the
 key parameters of the distribution:
 $\alpha=2, \beta=1.5, \sigma^2=1, \gamma^2=1$ These values were chosen
 because they represent moderate, plausible magnitudes for intercepts,
 effect sizes, and variances in typical clustered designs, allowing us to
 explore the study design under realistic and interpretable baseline
 conditions. With these baseline values and a fixed budget of 2000, we
-systematically varied the relative cost $\frac{c_1}{c_2}$ across 2, 5,
+systematically varied the relative cost $c_1/c_2$ across 2, 5,
 10, and 20, and the number of clusters over a sequence from 10 to 50 in
-increments of 5. To compute the cost per observation $c_2$, we used
-$c_2 = \frac{c_1}{\text{relative cost}}$. The number of observations per
+increments of 5. To compute the cost per measurement $c_2$, we used
+$c_2 = \frac{c_1}{\text{relative cost}}$. The number of measurements per
 cluster was then calculated as
-$\text{number of Observations per Cluster} = \frac{\text{Budget}-n_{clusters}\cdot c_1}{n_{clusters}\cdot c_2}$.
+$\text{number of measurements per Cluster} = \frac{\text{Budget}-n_{clusters}\cdot c_1}{n_{clusters}\cdot c_2}$.
 For example, under a fixed budget of 2000, if the relative cost
-$\frac{}{c_1}{c_2}$ is 2 and there are 20 clusters, the number of
-observations per cluster would be 98. However, if the relative cost
+c_1/c_2 is 2 and there are 20 clusters, the number of
+measurements per cluster would be 98. However, if the relative cost
 increases to 10 while keeping the number of clusters at 20, the number
-of observations per cluster decreases to 90. This demonstrates that
+of measurements per cluster decreases to 90. This demonstrates that
 higher relative cluster costs or an increase in the number of clusters
-reduces the number of observations per cluster, as the budget must be
+reduces the number of measurements per cluster, as the budget must be
 distributed accordingly. The goal of this step was to identify the
 optimal combination of the number of clusters and the number of
-observations per cluster that minimizes the variance of the estimated
+measurements per cluster that minimizes the variance of the estimated
 treatment effect $\beta$.
 
 After determining the optimal combination of the number of clusters and
-the number of observations per cluster, we fixed these values and
+the number of measurements per cluster, we fixed these values and
 conducted additional simulations to assess how varying the distribution
 parameters influences the optimal study design. Specifically, we varied
 the residual variance $\sigma^2$ over a sequence from 0.01 to 10 with 10
@@ -172,8 +167,8 @@ equally spaced values, and the treatment effect $\beta$ across 0.05,
 0.5, and 1.5. Changes in $\sigma^2$ directly affect the intra-class
 correlation (ICC), which quantifies the proportion of the total variance
 attributable to clustering effects, given by
-$\text{ICC} = \frac{\gamma^2}{\gamma^2+\sigma^2}ICC$. Under a fixed
-number of clusters and observations per cluster, increasing $\sigma^2$
+$\text{ICC} = \frac{\gamma^2}{\gamma^2+\sigma^2}$. Under a fixed
+number of clusters and measurements per cluster, increasing $\sigma^2$
 reduces the ICC, indicating weaker clustering effects. This, in turn,
 increases the within-cluster variation relative to the total variation,
 which can result in greater variability of the $\beta$ estimate. As
@@ -205,7 +200,7 @@ sim_normal <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, sigm
   # Calculate c2 from the ratio
   c2 <- c1 / c1_c2_ratio
   
-  # Calculate the number of observations per cluster
+  # Calculate the number of measurements per cluster
   n_obs_per_cluster <- floor((B - n_clusters * c1) / (n_clusters * c2)) + 1
   
   # Assign clusters to treatment (X = 1) or control (X = 0)
@@ -288,7 +283,7 @@ sim_poisson <- function(n_clusters, B, c1, c1_c2_ratio, alpha, beta, gamma2, n_s
   # calculate c2 from the ratio
   c2 <- c1 / c1_c2_ratio
   
-  # calculate the number of observations per cluster
+  # calculate the number of measurements per cluster
   n_obs_per_cluster <- floor((B - n_clusters * c1) / (n_clusters * c2)) + 1
 
   
@@ -481,7 +476,7 @@ res_poisson_opt <- read.csv("res_poisson_opt.csv")
 ```
 
 
-`Table 1` summarizes the variance of the treatment effect estimate ($\hat{\beta}$) and the corresponding number of measurements per cluster ($R$) across various combinations of the number of clusters ($G$) and relative cost ratios ($c_1/c_2$) for both Normal and Poisson data-generating mechanisms. Each row represents a specific number of clusters ($G$), while the columns provide the corresponding $R$ and the variance of $\hat{\beta}$ for cost ratios $c_1/c_2 = 2, 5, 10, 20$, under a fixed budget of 2000. The highlighted cells identify the optimal combinations of $G$ and $R$ that achieve the lowest variance of $\hat{\beta}$, reflecting the most efficient allocation of resources within the given constraints.
+`Table 1` summarizes the variance of the treatment effect estimate ($\hat{\beta}$) and the corresponding number of measurements per cluster ($R$) across various combinations of the number of clusters ($G$) and relative cost ratios ($c_1/c_2$) for both Normal and Poisson data-generating mechanisms. Each row represents a specific number of clusters, while the columns provide the corresponding $R$ and the variance of $\hat{\beta}$ for cost ratios $c_1/c_2 = 2, 5, 10, 20$, under a fixed budget of 2000. The highlighted cells identify the optimal combinations of $G$ and $R$ that achieve the lowest variance of $\hat{\beta}$, reflecting the most efficient allocation of resources within the given constraints.
 
 
 ```{r warning=FALSE, message=FALSE, out.width="80%"}
@@ -618,11 +613,9 @@ stacked_combined_df %>%
 
 ### Normal Distribution
 
-Under the Normal distribution, `Figure 1` visualizes the relationship between the variance of the treatment effect estimate ($\hat{\beta}$) and the number of clusters ($G$), stratified by relative cost ratios ($c_1/c_2 = 2, 5, 10, 20$). Each line represents a specific cost ratio, and the labels indicate the corresponding number of measurements per cluster ($R$) at different cluster sizes. The variance of $\hat{\beta}$ decreases as the number of clusters increases, a trend consistent with the results presented in `Table 1`. However, the decrease follows a pattern of diminishing returns, with minimal reductions in variance observed when the number of clusters exceeds approximately $G = 40$.
+Under the Normal distribution, `Figure 1` visualizes the relationship between the variance of the treatment effect estimate ($\hat{\beta}$) and the number of clusters ($G$), stratified by relative cost ratios ($c_1/c_2 = 2, 5, 10, 20$). Each line represents a specific cost ratio, and the labels indicate the corresponding number of measurements per cluster ($R$) at different cluster sizes. As the number of clusters increases, the variance of the treatment effect estimate decreases, which is consistent with the results presented in `Table 1`. However, this decreasing trend follows a pattern of diminishing returns. Beyond a certain threshold, around $G = 40$, adding more clusters results in only marginal reductions in variance, suggesting that there is an optimal point beyond which additional clusters do not significantly improve precision. This indicates that while increasing the number of clusters improves the precision of treatment effect estimates, there is a limit to the benefit gained from simply adding more clusters.
 
-`Figure 1` also highlights the trade-offs between within-cluster measurements ($R$) and the number of clusters ($G$) at different cost ratios. For lower cost ratios ($c_1/c_2 = 2, 5$), more resources are allocated to within-cluster measurements, resulting in steeper reductions in variance at smaller $G$. The optimal configurations in these scenarios, such as $G = 50, R = 3$ for $c_1/c_2 = 2$ and $G = 45, R = 7$ for $c_1/c_2 = 5$, align closely with the results in Table 1, achieving variances of 0.11 and 0.08, respectively. In contrast, higher cost ratios ($c_1/c_2 = 10, 20$) prioritize increasing the number of clusters, leading to more gradual reductions in variance. Optimal configurations in these cases, such as $G = 45, R = 13$ or $G = 50, R = 11$, yield variances as low as 0.07.
-
-Together, `Figure 1` and `Table 1` demonstrate that while increasing the number of clusters consistently reduces the variance of $\hat{\beta}$, the choice of cost ratio plays a critical role in determining the balance between $G$ and $R$. This relationship underscores the importance of strategic resource allocation to achieve optimal precision under budget constraints in cluster randomized trials.
+`Figure 1` also shows the impact of varying cost ratios on resource allocation between the number of clusters and the number of measurements per cluster. Higher cost ratios lead to a lower relative cost of additional measurements ($c_2$), allowing for more resources to be allocated to increasing the number of measurements per cluster. Interestingly, when $c_1/c_2 = 10$, the decreasing trend in variance becomes flatter, indicating that the variance appears to be smaller overall compared to the other cost ratios. This suggests that for higher cost ratios, the allocation of resources to more measurements per cluster is more effective at reducing variance. However, as the cost ratios increases further to 20, meaning there is a large number of measurements per cluster, the allocation of more resources to measurements does not necessarily result in lower variance on average. Thus, a higher number of measurements per cluster (as seen in $c_1/c_2 = 20$) does not always guarantee better precision, highlighting the importance of the cost structure in determining the optimal balance between the number of clusters and the number of measurements per cluster.
 
 ```{r warning=FALSE, message=FALSE, out.width="80%", fig.align='center'}
 # Assign colors for the c1/c2 ratio
@@ -644,7 +637,7 @@ ggplot(res_normal_opt, aes(x = n_clusters, y = beta_est_var)) +
   scale_color_manual(values = colors_normal, name = "Relative costs (c1/c2)") +
   facet_wrap(~c1_c2_ratio, nrow = 1) +
   labs(
-    title = "Figure 1: Variance of Beta Estimates vs. Number of Clusters",
+    title = "Figure 1: Variance of Beta Estimates vs. Number of Clusters (Normal)",
     x = "Number of Clusters",
     y = "Variance of Beta Estimates"
   ) +
@@ -661,17 +654,9 @@ ggplot(res_normal_opt, aes(x = n_clusters, y = beta_est_var)) +
 
 ### Poisson
 
-Under the Poisson distribution, the variance of $\beta_{est}$ follows a
-similar trend but is generally higher compared to the Normal
-distribution, particularly for smaller G. For instance, at G=10 and
-$\frac{c_1}{c_2}$=2, the variance is 0.29 under Poisson compared to 0.44
-under Normal. This reflects the additional variability associated with
-Poisson-distributed outcomes. As G increases, the variance decreases,
-and by G=40 or higher, the differences between the two distributions
-narrow. Lower cost ratios again lead to smaller variances due to higher
-R. The plot for the Poisson distribution confirms these patterns,
-showing steeper reductions in variance at smaller G values and
-stabilization as G increases.
+Under the Poisson distribution, the variance of $\beta_{est}$ follows a similar trend but is generally lower compared to the Normal distribution, particularly for smaller G. For instance, at G=10 and $\frac{c_1}{c_2}$=2, the variance is 0.29 under Poisson compared to 0.44
+under Normal. Similar to the Normal distribution, increasing the number of clusters ($G$) results in a reduction in variance, but diminishing returns are observed. After a certain threshold, around $G = 40$, the variance continues to decrease at a slower rate, suggesting an optimal point beyond which adding more clusters does not substantially reduce variance. The plot also reveals the impact of varying cost ratios ($c_1/c_2$) on the allocation of resources between the number of clusters and the number of measurements per cluster ($R$). For lower cost ratios ($c_1/c_2 = 2$) and higher cost ratios ($c_1/c_2 = 20$), the overall variance of $\hat{\beta}$ is smaller compared to the moderate cost ratios of $c_1/c_2 = 5$ and $c_1/c_2 = 10$.
+
 
 ```{r warning=FALSE, message=FALSE, out.width="80%", fig.align='center'}
 # Assign colors for the c1/c2 ratio
@@ -693,7 +678,7 @@ ggplot(res_poisson_opt, aes(x = n_clusters, y = beta_est_var)) +
   scale_color_manual(values = colors_poisson, name = "Relative costs (c1/c2)") +
   facet_wrap(~c1_c2_ratio, nrow = 1) +
   labs(
-    title = "Figure 2: Variance of Beta Estimates vs. Number of Clusters",
+    title = "Figure 2: Variance of Beta Estimates vs. Number of Clusters (Poisson)",
     x = "Number of Clusters",
     y = "Variance of Beta Estimates"
   ) +
@@ -708,18 +693,14 @@ ggplot(res_poisson_opt, aes(x = n_clusters, y = beta_est_var)) +
   )
 ```
 
-In summary, the results demonstrate that increasing G reduces the
+In summary, the results demonstrate that increasing number of clusters reduces the
 variance of $\beta_{est}$ under both distributions, with more pronounced
-improvements at smaller G values. Higher cost ratios
-($\frac{c_1}{c_2}$=10 or 20) result in higher variances due to fewer
-observations per cluster. The variance is consistently higher for the
-Poisson distribution at smaller G, but this difference diminishes as G
-increases, reflecting the stabilizing effect of larger sample sizes.
-These findings highlight the importance of optimizing the number of
-clusters, observations per cluster, and cost ratios to ensure precise
-and efficient study designs under varying distributions.
+improvements at smaller G values. Lower cost ratios
+($\frac{c_1}{c_2}$=2 or 5) result in higher variances due to fewer
+measurements per cluster. 
 
-## Varying data Generation
+
+## Varying Data Generation
 
 ```{r warning=FALSE, message=FALSE}
 # Function to simulate for different sigma2 and beta under optimal # of clusters and # of obs/cluster
@@ -860,39 +841,7 @@ poisson_opt <- res_poisson_opt %>%
 res_poisson_vary <- read.csv("res_poisson_vary.csv")
 ```
 
-This table summarizes simulation results for the Normal and Poisson
-distributions under varying cost ratios ($c_1/c_2$), variances
-($\sigma^2$ and $\gamma^2$), and treatment effect sizes ($\beta$). As
-the cost ratio increases, the number of clusters ($G$) decreases, and
-the number of observations per cluster ($R$) increases, reflecting the
-allocation of resources between clusters and individuals. For the Normal
-distribution, the variability of the beta estimate
-($\text{Var}(\beta_{\text{est}})$) remains relatively stable, and power
-is generally higher, especially at lower variances ($\sigma^2 = 0.1$).
-In contrast, the Poisson distribution shows higher variability in beta
-estimates and lower power overall, particularly at larger variances
-($\sigma^2 = 10$).
-
-Increasing variance ($\sigma^2$) negatively impacts both distributions
-by increasing $\text{Var}(\beta_{\text{est}})$ and reducing power.
-However, the Poisson distribution is more sensitive to variance, leading
-to significant reductions in power for smaller treatment effects
-($\beta = 0.05$). Larger treatment effects ($\beta = 1.50$) consistently
-improve power and reduce variability across both distributions, though
-the Normal distribution outperforms Poisson in terms of stability and
-power.
-
-The balance between clusters and observations is crucial. For the Normal
-distribution, increasing the cost ratio ($c_1/c_2$) and allocating more
-observations per cluster tends to improve power and stabilize
-$\text{Var}(\beta_{\text{est}})$. Conversely, for the Poisson
-distribution, increasing the number of clusters ($G$) by reducing the
-cost ratio might help mitigate the higher variability observed with
-larger variances. This highlights the importance of careful design
-considerations in resource allocation, especially when dealing with high
-variance or smaller treatment effects. Overall, the Normal distribution
-demonstrates better performance in terms of lower variability and higher
-power, making it a preferable choice when its assumptions are met.
+`Table 2` summarizes simulation results, highlighting the variance of the treatment effect estimate ($\hat{\beta}$) and power across varying levels of variance ($\sigma^2$ for Normal, $\gamma^2$ for Poisson), treatment effect sizes ($\beta$), and relative cost ratios ($c_1/c_2 = 2, 5, 10, 20$). For the Normal distribution, higher $\sigma^2$ results in increased variance of $\hat{\beta}$ and reduced power, particularly for smaller treatment effects ($\beta = 0.05$), while larger effects ($\beta = 1.5$) consistently yield lower variances and higher power. Similarly, for Poisson outcomes, as $\gamma^2$ increases, both the variance of $\hat{\beta}$ and the loss of power become more pronounced for smaller $\beta$. Larger treatment effects ($\beta = 1.5$) are associated with lower variances and higher power in both distributions. The optimal number of clusters ($G$) and measurements per cluster ($R$), identified in prior analyses, reflect a trade-off between within-cluster and between-cluster variability, influenced by the cost ratio. Higher cost ratios ($c_1/c_2 = 20$) facilitate more measurements per cluster but do not consistently minimize variance or maximize power, underscoring the need to carefully balance variability, effect size, and cost considerations when selecting optimal study designs.
 
 ```{r , out.width="80%"}
 # Results Table (Normal)
@@ -954,37 +903,9 @@ df_com_vary %>%
 
 ### Normal
 
-This plot illustrates the impact of residual variance ($\sigma^2$) on
-the variance of $\beta_{est}$ and power under the Normal distribution,
-stratified by three treatment effect sizes ($\beta$ =0.05,0.5,1.5) and
-four relative cost ratios ($\frac{c_1}{c_2}$=2,5,10,20). In the left
-panel, the variance of $\beta_{est}$ increases as $\sigma^2$ grows,
-particularly beyond $\sigma^2$=5. This trend reflects the additional
-variability introduced by larger residuals, which reduces the precision
-of the $\beta$ estimate. Lower cost ratios ($\frac{c_1}{c_2}$=2) exhibit
-slightly higher variances for smaller $\sigma^2$, while higher cost
-ratios ($\frac{c_1}{c_2}$=10 or 20) stabilize the variance as $\sigma^2$
-increases by spreading the variability across more clusters. Larger
-treatment effects ($\beta$=1.5) consistently result in lower variances
-compared to smaller treatment effects ($\beta$=0.05), demonstrating that
-larger effect sizes are easier to estimate precisely, even in the
-presence of variability.
+`Figure 3` illustrates the relationship between the variance of the treatment effect estimate ($\hat{\beta}$) and power, across varying values of within-cluster variance ($\sigma^2$) and relative cost ratios ($c_1/c_2 = 2, 5, 10, 20$). In the left panel, the variance of $\hat{\beta}$ increases as $\sigma^2$ grows, with higher values of $\sigma^2$ leading to less precise estimates of $\beta$. For smaller treatment effects ($\beta = 0.05$), the variance grows sharply, particularly when $\sigma^2$ exceeds 5. For larger treatment effects ($\beta = 1.5$), the variance remains relatively stable despite increases in $\sigma^2$, reflecting that larger effect sizes are more detectable even in the presence of residual variability. In the right panel, as expected, power decreases with increasing $\sigma^2$, especially for smaller treatment effects. In particular, lower cost ratios achieve slightly higher power for smaller values of $\sigma^2$, as more resources are allocated to within-cluster measurements, improving detection. However, for higher cost ratios, the emphasis shifts towards increasing the number of clusters, which leads to fewer measurements per cluster and can reduce power. For larger treatment effects, power remains relatively stable despite increases in $\sigma^2$, showing that larger treatment effects are more easily detected, even with increasing within-cluster variance.
 
-In the right panel, power decreases with increasing $\sigma^2$,
-particularly for smaller treatment effects ($\beta$=0.05), where
-detecting the effect becomes increasingly challenging as residual
-variability grows. Lower cost ratios ($\frac{c_1}{c_2}$ =2) achieve
-slightly higher power for small $\sigma^2$, as they allocate more
-resources to within-cluster observations, improving the ability to
-detect effects. In contrast, higher cost ratios ( $\frac{c_1}{c_2}$=10
-or 20) prioritize increasing the number of clusters, which can reduce
-power due to fewer observations per cluster. For large treatment effects
-($\beta$=1.5), power is relatively robust to changes in $\sigma^2$ and
-cost ratios, reflecting the strong signal associated with larger
-effects. These results highlight the trade-offs between cost allocation,
-residual variability, and treatment effect size in study design, with
-smaller treatment effects being more sensitive to increased variability
-and cost distribution strategies.
+In this study, clusters are represented by individuals, and the lower level corresponds to the number of repeated measurements ($R$) per individual. The intra-class correlation coefficient (ICC) quantifies the proportion of total variance attributable to variability between individuals (clusters). As $\sigma^2$, the within-individual variance, increases under a fixed between-individual variance ($\gamma^2$), the ICC decreases. When $\text{ICC} \approx 1$, repeated measurements within an individual are perfectly correlated, so additional measurements provide no new information, and the effective sample size reduces to the number of individuals (clusters). Conversely, when $\text{ICC} = 0$, measurements within an individual behave independently, and the available sample size is the total number of repeated measurements, maximizing the informational value of the study. As $\sigma^2$ increases and ICC decreases, the clusters contribute less unique information, making within-cluster data less informative and increasing the variance of $\hat{\beta}$. This diminished efficiency highlights the critical role of ICC in study design, as higher ICC values reduce the effective sample size and inflate the variance of the treatment effect estimate. These findings underscore the importance of carefully considering ICC and its relationship to within-cluster and between-cluster variability when designing cluster randomized trials.
 
 ```{r, fig.align='center'}
 final_results_long_normal <- res_normal_vary %>%
@@ -1041,44 +962,20 @@ combined_plot_normal <- ggarrange(plot_beta_est_var_normal, plot_power_normal, c
 
 final_plot_normal <- annotate_figure(
   combined_plot_normal,
-  top = text_grob("Figure 3: Variance of Beta Estimate and Power Across c1/c2 Ratios", size = 10, face = "bold")
+  top = text_grob("Figure 3: Variance of Beta Estimate and Power Across c1/c2 Ratios (Normal)", size = 10, face = "bold")
 )
 final_plot_normal
 ```
 
 ### Poisson
 
-This plot examines the variance of $\beta_{\text{est}}$ (left panel) and
-power (right panel) as functions of $\gamma^2$ under the Poisson
-distribution, stratified by treatment effect sizes
-($\beta = 0.5, 1.5, 3$) and relative cost ratios
-($c_1/c_2 = 2, 5, 10, 20$). The variance of $\beta_{\text{est}}$
-increases consistently with $\gamma^2$ across all treatment effect sizes
-and cost ratios. Higher $\gamma^2$, representing greater between-cluster
-variability, adds uncertainty to $\beta_{\text{est}}$, with the most
-pronounced increases observed beyond $\gamma^2 = 5$. Lower cost ratios
-($c_1/c_2 = 2$) result in slightly higher variances due to a larger
-number of within-cluster observations, amplifying the effects of
-between-cluster heterogeneity. Higher cost ratios ($c_1/c_2 = 10$ or
-20), which prioritize more clusters, mitigate this effect by
-distributing variability across more clusters. Larger treatment effects
-($\beta = 3$) generally show higher variances compared to smaller
-effects, as larger effects are more influenced by between-cluster
-heterogeneity.
+`Figure 4` illustrates the relationship between the variance of the treatment effect estimate ($\hat{\beta}$) and power, across varying values of between-cluster variance ($\gamma^2$) and relative cost ratios ($c_1/c_2 = 2, 5, 10, 20$). In the left panel, the variance of $\hat{\beta}$ increases as $\gamma^2$ grows, with higher values of $\gamma^2$ corresponding to increased between-cluster heterogeneity. This reflects the greater variability introduced by differences across clusters, reducing the precision of the treatment effect estimate. For smaller treatment effects ($\beta = 0.05$), the variance increases more sharply with $\gamma^2$, indicating that small effect sizes are more sensitive to between-cluster variability. For larger treatment effects ($\beta = 1.5$), the variance grows more gradually, highlighting that larger effect sizes are less affected by increased between-cluster variance.
 
-The power to detect treatment effects decreases as $\gamma^2$ increases,
-particularly for smaller treatment effects ($\beta = 0.5$). Power is
-highest for smaller $\gamma^2$ values and larger treatment effects
-($\beta = 3$), which are less sensitive to increases in between-cluster
-heterogeneity. Lower cost ratios ($c_1/c_2 = 2$) achieve slightly higher
-power for smaller $\gamma^2$ because they allocate more observations per
-cluster, improving the ability to detect small effects. Conversely,
-higher cost ratios ($c_1/c_2 = 10$ or 20) lead to lower power for small
-treatment effects as $\gamma^2$ grows, due to fewer within-cluster
-observations. These results highlight the trade-off between cost
-allocation strategies and the effects of between-cluster variability on
-precision and power, emphasizing the need to carefully account for
-$\gamma^2$ in study design.
+In the Poisson setting, $\gamma^2$ directly influences the intra-class correlation coefficient (ICC), which quantifies the proportion of total variance attributable to differences between clusters. As $\gamma^2$ increases, ICC rises, meaning the measurements within a cluster become more similar to each other. This reduces the effective sample size, as adding more measurements within a highly correlated cluster contributes less unique information, thereby inflating the variance of $\hat{\beta}$. When ICC is low (small $\gamma^2$), clusters contribute more unique information, leading to smaller variances in $\hat{\beta}$.
+
+In the right panel, power decreases as $\gamma^2$ increases, particularly for smaller treatment effects ($\beta = 0.05$), where detecting the effect becomes more difficult due to greater between-cluster variability. Lower cost ratios ($c_1/c_2 = 2$) achieve slightly higher power for smaller $\gamma^2$, as they allocate more resources to within-cluster measurements, improving the ability to detect effects. Higher cost ratios ($c_1/c_2 = 10, 20$), which prioritize the number of clusters, maintain more stable power across larger $\gamma^2$, highlighting a trade-off between cluster count and measurement allocation in optimizing power. For large treatment effects ($\beta = 1.5$), power remains relatively robust to changes in $\gamma^2$, underscoring the strong signal associated with larger effects.
+
+These findings emphasize the interplay between between-cluster variability, ICC, and study design parameters. In Poisson-distributed outcomes, higher ICC (driven by larger $\gamma^2$) increases the variance of $\hat{\beta}$, reduces power for smaller treatment effects, and underscores the importance of carefully balancing cluster count and within-cluster measurements in study design.
 
 ```{r, fig.align='center'}
 # Step 4: Visualize results
@@ -1134,49 +1031,24 @@ combined_plot_poisson <- ggarrange(plot_beta_est_var_poisson, plot_power_poisson
 
 final_plot_poisson <- annotate_figure(
   combined_plot_poisson,
-  top = text_grob("Figure 4: Variance of Beta Estimate and Power Across c1/c2 Ratios", size = 10, face = "bold")
+  top = text_grob("Figure 4: Variance of Beta Estimate and Power Across c1/c2 Ratios (Poisson)", size = 10, face = "bold")
 )
 final_plot_poisson
 ```
 
-### Comparison
 
-The effects of increasing $\sigma^2$ in the Normal distribution and
-$\gamma^2$ in the Poisson distribution on the variance of
-$\beta_{\text{est}}$ share several similarities but operate through
-distinct mechanisms. In both cases, increasing these parameters leads to
-higher variance of $\beta_{\text{est}}$, as they represent measures of
-variability in the data. The impact of both parameters becomes more
-pronounced as their values grow, with steeper increases in variance
-observed at higher levels of $\sigma^2$ and $\gamma^2$. Additionally,
-the effects of both parameters are influenced by study design features,
-such as the number of clusters and the allocation of observations per
-cluster, which can mitigate their impact.
+Both the Normal and Poisson models show that increasing variance components ($\sigma^2$ in Normal, $\gamma^2$ in Poisson) reduces the precision of the treatment effect estimate ($\hat{\beta}$), highlighting the critical role of intra-class correlation (ICC) in study design. Lower ICC values, which imply less correlation within clusters, increase the effective sample size and reduce the variance of $\hat{\beta}$. However, the mechanisms differ due to the underlying data structures. In the Normal model, $\sigma^2$ represents residual variability independent of cluster means, causing a linear increase in $\hat{\beta}$'s variance as noise grows. In contrast, the Poisson model’s $\gamma^2$ affects the variability in the log-scale parameter $\log(\mu_i)$, which indirectly influences both within- and between-cluster variability by broadening the expected count range. The Normal model assumes additive symmetric residuals, while the Poisson model deals with skewed, non-negative count data, leading to different sensitivities to parameter changes. These differences underscore the importance of carefully considering the data structure and ICC when designing studies, as they shape the balance between within-cluster and between-cluster variability and their effects on $\hat{\beta}$'s precision.
 
-However, key differences exist between the two. In the Normal
-distribution, $\sigma^2$ represents residual variability at the
-individual level, affecting precision by amplifying within-cluster
-noise. In contrast, $\gamma^2$ in the Poisson distribution captures
-between-cluster variability in log-scale means, influencing the
-heterogeneity of cluster-specific rates and indirectly affecting
-within-cluster variation. The effect of $\sigma^2$ is more sensitive to
-the number of observations per cluster ($R$), as larger within-cluster
-samples reduce residual noise. In contrast, $\gamma^2$ primarily depends
-on the number of clusters ($G$), as adding clusters distributes
-variability across a larger sample. Moreover, $\sigma^2$ operates
-directly on the outcome’s original scale, while $\gamma^2$ acts on the
-log-scale, amplifying differences between cluster-level means. These
-distinctions highlight how variability parameters uniquely influence the
-precision of $\beta_{\text{est}}$ depending on the distributional
-assumptions and emphasize the importance of tailored strategies for
-study design optimization.
+
 
 # Discussion
-This study provides insights into optimizing the design of cluster randomized trials under budgetary constraints, focusing on minimizing the variance of treatment effect estimates ($\hat{\beta}$) while balancing trade-offs between within-cluster and between-cluster variability. By systematically varying the number of clusters ($G$), measurements per cluster ($R$), cost ratios ($c_1/c_2$), and variance components ($\sigma^2$, $\gamma^2$), we identified optimal configurations that maximize statistical precision. Our findings highlight the critical role of cost ratios in determining resource allocation strategies. Lower cost ratios prioritize within-cluster measurements, leading to steeper reductions in variance at smaller cluster sizes, while higher cost ratios favor increasing the number of clusters to achieve lower variance.
+This study investigates optimal design strategies for cluster randomized trials under budgetary constraints by systematically examining trade-offs between within-cluster and between-cluster variability. The results show that increasing the number of clusters consistently reduces the variance of $\hat{\beta}$ across all cost ratio levels, though with diminishing returns beyond a certain point.
 
-The results also emphasize the importance of distributional assumptions in trial design. For Normal outcomes, increasing residual variance ($\sigma^2$) weakens clustering effects, increasing the variability of $\hat{\beta}$ and reducing precision. Conversely, for Poisson outcomes, between-cluster variability ($\gamma^2$) influences both variance and power, with greater sensitivity to clustering heterogeneity compared to Normal outcomes. These differences underscore the need to account for distribution-specific characteristics when designing cluster randomized trials.
+For Normal outcomes, increasing $\sigma^2$ weakens clustering effects by reducing the intra-class correlation (ICC), thereby increasing the variability of $\hat{\beta}$ and diminishing precision. As $\sigma^2$ grows, power decreases significantly for smaller treatment effects but remains relatively robust for larger effects ($\beta = 1.5$). In contrast, for Poisson outcomes, $\gamma^2$ strongly influences ICC, with higher $\gamma^2$ values resulting in greater between-cluster variability and inflating $\hat{\beta}$'s variance. The impact of $\gamma^2$ is particularly pronounced for smaller treatment effects, where power declines sharply as ICC rises.
 
-Despite its contributions, this study has limitations. The simulation scenarios were restricted to 100 iterations per parameter configuration, which may not fully capture the variability in estimates. Additionally, the sequential approach of optimizing $G$ and $R$ before varying variance components and treatment effects does not allow for joint optimization, potentially overlooking interactions between these parameters. Finally, while the intra-class correlation (ICC) was explored by varying $\sigma^2$ for Normal outcomes, $\gamma^2$ was not varied simultaneously, limiting insights into the differential impacts of these components. Future work should address these limitations by increasing the number of simulations, varying all parameters simultaneously, and exploring broader distributional assumptions to enhance the generalizability of the findings. These advancements will provide more comprehensive guidance for designing cost-efficient and statistically robust cluster randomized trials.
+Interestingly, while larger treatment effects consistently yield lower variances and higher power across both distributions, the sensitivity to variance components ($\sigma^2$ and $\gamma^2$) and cost ratio adjustments varies between Normal and Poisson outcomes. For Poisson-distributed data, increasing $\gamma^2$ directly increases ICC, diminishing the effective sample size and reducing the information gained from additional measurements within clusters. This difference reflects the distinct hierarchical data structures, with Normal outcomes exhibiting additive residual variability and Poisson outcomes demonstrating multiplicative, count-based heterogeneity.
+
+These findings highlight the importance of tailoring study designs to the underlying data-generating mechanisms and variance structures. For example, in scenarios with high between-cluster variability (e.g., high $\gamma^2$), designs with more clusters but fewer measurements per cluster may be preferable. Conversely, when within-cluster variability dominates (e.g., high $\sigma^2$), allocating resources toward within-cluster measurements could improve precision and power. The nuanced interplay between ICC, variance components, and cost ratios emphasizes the need for careful planning and consideration of the data structure to achieve cost-efficient and statistically robust trial designs.
 
 
 
@@ -1192,6 +1064,7 @@ Finally, the exploration of intra-class correlation (ICC) under the Normal distr
 
 # References
 Clancy, M., et al. (2020). Evaluating the effectiveness of a hand hygiene protocol in hospitals: A cluster randomized trial. Journal of Hospital Infection, 104(3), 241–248.
+
 Karimian, Z., et al. (2023). Effects of a dietary intervention on glycemic control with repeated measurements: A cluster-based study. Cardiovascular Diabetology, 22(4), 300–312.
 
 
