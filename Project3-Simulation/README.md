@@ -24,13 +24,18 @@ The results demonstrate that increasing the number of clusters ($G$) consistentl
 `PHP2550_Project3.pdf`: The PDF version of the Regression Analysis report, which includes both written text interpretations and a Code Appendix with the raw code used in the analysis. 
 
 ### Dataset
+`res_normal_opt`: contains the results of simulations designed to evaluate the optimal allocation of clusters (G) and measurements per cluster (R) under the Normal distribution;
+`res_normal_vary`: contains simulation results evaluating the impact of varying within-cluster variance ($\sigma^2$) and treatment effect sizes ($\beta$) on the performance of cluster randomized trial designs under normal distribution, using optimal configurations of clusters ($G$) and measurements per cluster ($R$) determined in previous steps, and includes metrics such as the variance of the treatment effect estimate ($\hat{\beta}$), power, and confidence interval coverage.
+
+`res_poisson_opt`: contains the results of simulations designed to evaluate the optimal allocation of clusters (G) and measurements per cluster (R) under the Poisson distribution
+`res_poisson_vary`: contains simulation results evaluating the impact of varying within-cluster variance ($\sigma^2$) and treatment effect sizes ($\beta$) on the performance of cluster randomized trial designs under poisson distribution, using optimal configurations of clusters ($G$) and measurements per cluster ($R$) determined in previous steps, and includes metrics such as the variance of the treatment effect estimate ($\hat{\beta}$), power, and confidence interval coverage.
 
 ## Dependencies
 
 The following packages were used in this analysis: 
 
- - Data Manipulation: `dplyr`, `tidyr`, `mice`, `caret`
- - Table Formatting: `gt`, `gtsummary`
- - Data Visualization: `ggplot2`, `ggpubr`, `ggExtra`, `gridExtra`, `predtools`, `pROC`
- - Model: `glmnet`, `boot`, `ISLR`
+ - Data Manipulation: `tidyverse`, `dplyr`
+ - Table Formatting: `gt`
+ - Data Visualization: `ggplot2`, `ggpubr`, `RColorBrewer`
+ - Model: `lmerTest`, `lme4`
  
