@@ -6,7 +6,7 @@ This project investigates the design of cluster randomized trials under budget c
 
 ### Simulation Framework
 
-The simulation framework was guided by the ADEMP (Aims, Data-generating mechanisms, Estimands, Methods, and Performance measures) framework. Simulations were conducted using both Normal and Poisson data-generating mechanisms to reflect common outcome distributions in real-world trials. Key features of the framework include:
+The simulation framework was guided by the ADEMP (Aims, Data-generating mechanisms, Estimands, Methods, and Performance measures) framework. Simulations were conducted using both Normal and Poisson data-generating mechanisms to reflect common outcome distributions in real-world trials. Key features of the framework in our case include:
 - **Aims:** Evaluate the optimal allocation of a fixed budget across clusters ($G$) and measurements per cluster ($R$), minimizing the variance of the treatment effect estimate ($\hat{\beta}$), and assess the impact of variance components ($\sigma^2$, $\gamma^2$) and treatment effects ($\beta$) on precision and power.
     
 - **Data-Generating Mechanisms:** Simulations were conducted under:
