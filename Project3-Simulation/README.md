@@ -41,9 +41,13 @@ The results demonstrate that increasing the number of clusters ($G$) consistentl
 
 ### Simulaion Functions
 `Simulation (Normal).R`: An R script for simulating data under a normal distribution framework.
+
 `Simulation (Poisson).R`: An R script for simulating data under a poisson distribution framework.
+
 `Performance of Clusters (Normal).R`: An R script for generating performance metrics across varying cluster sizes and cost ratios under a normal distribution framework.
+
 `Performance of Clusters (Poisson).R`: An R script for generating performance metrics across varying cluster sizes and cost ratios under a poisson distribution framework.
+
 ## Dependencies
 
 The following packages were used in this analysis: 
