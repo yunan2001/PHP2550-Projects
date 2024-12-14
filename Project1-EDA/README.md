@@ -23,6 +23,8 @@ This report's exploratory data analysis revealed that there was a U-shape, non-l
 
 `PHP2550_Project1.pdf`: The PDF version of the Exploratory Data Analysis report, which includes both written text interpretations and a Code Appendix with the raw code used in the analysis. 
 
+### Visuals
+Included tables and Figures included in the report.
 
 ## Dependencies
 
