@@ -6,7 +6,7 @@ The implications of weather conditions on athletics performance in endurance exe
 
 ### Methods
 
-This report explores the relationship between age and marathon performance in men and women. Exploring the impact of environmental conditions including temperature, humidity, solar radiation, and wind on marathon performance, and whether the impact differs across age and gender. Identifying the weather conditions that have the largest impact on marathon performance.
+This report investigates the relationship between age, sex, and environmental conditions on marathon performance using figures, summary tables, and a quadratic linear modeling approach. It examines the impact of environmental factors, including Wet Bulb Globe Temperature (WBGT), relative humidity, solar radiation, wind, and average air quality index (AQI), on performance, while also exploring whether these effects vary across different age groups and genders. By incorporating both the linear and quadratic terms of age (Age and $\text{Age}^2$), the model captures the non-linear relationship observed between age and marathon performance. The analysis aims to identify the weather conditions with the greatest influence on marathon performance and provide insights into how these effects interact with demographic factors.
 
 ### Results
 
