@@ -27,6 +27,7 @@ The exploratory analysis highlighted factors such as education, age, and nicotin
 ### Visuals:
 Included tables and figures in the report.
 
+## Dependencies
 The following packages were used in this analysis: 
 
  - Data Manipulation: `dplyr`, `tidyr`, `mice`, `caret`
