@@ -24,6 +24,7 @@ library(gt)
 # Plots
 library(ggplot2)
 library(ggpubr)
+library(corrplot)
 library(moments)
 library(predtools)
 library(pROC)
@@ -35,12 +36,15 @@ library(ggExtra)
 library(glmnet)
 library(boot)
 library(ISLR)
+library(ROCR)
+library(pROC)
+library(caret)
 ```
 
 
 # Abstract
 
-This report examines data from a clinical trial exploring smoking abstinence treatments for individuals with major depressive disorder (MDD), who face unique challenges in quitting smoking. The study evaluates two behavioral treatments: Behavioral Activation for Smoking Cessation (BASC) and standard treatment (ST), paired with either varenicline or placebo. Results indicate that varenicline improves smoking abstinence rates compared to placebo, underscoring its effectiveness in this population. BASC, designed to counter depressive symptoms by encouraging engagement in meaningful activities, shows promise, especially when combined with varenicline. However, certain baseline factors, such as nicotine dependence and active depressive symptoms, appear to influence the behavioral treatment effectiveness. Higher nicotine dependence slightly reduces BASC’s impact, while current MDD symptoms can act as a barrier to successful abstinence. Exploratory analyses highlight that demographic and behavioral factors like education, income, and age affect somking abstinence. Regression analysis reveals predictors of abstinence, suggesting that individuals with higher education, lower nicotine dependence, and certain income levels have greater odds of quitting. The model’s classification accuracy indicates reliable performance, though calibration issues on test data suggest potential for improvement. These findings emphasize the need for tailored interventions for smokers with MDD, particularly combining BASC and varenicline, to enhance long-term cessation success.
+This report examines data from a clinical trial exploring smoking abstinence treatments for individuals with major depressive disorder (MDD), who face unique challenges in quitting smoking. The study evaluates two behavioral treatments: Behavioral Activation for Smoking Cessation (BASC) and standard treatment (ST), paired with either varenicline or placebo. Results indicate that varenicline improves smoking abstinence rates compared to placebo, underscoring its effectiveness in this population. BASC, designed to counter depressive symptoms by encouraging engagement in meaningful activities, shows promise, especially when combined with varenicline. However, certain baseline factors, such as nicotine dependence and active depressive symptoms, appear to influence the behavioral treatment effectiveness. Higher nicotine dependence slightly reduces BASC’s impact, while current MDD symptoms can act as a barrier to successful abstinence. Exploratory analyses highlight that demographic and behavioral factors like education, income, and age affect somking abstinence. Regression analysis reveals predictors of abstinence, suggesting that individuals with higher nicotine metabolism ratio, lower nicotine dependence, and certain income levels have greater odds of quitting. The model’s classification accuracy indicates reliable performance, though calibration issues on test data suggest potential for improvement. These findings emphasize the need for tailored interventions for smokers with MDD, particularly combining BASC and varenicline, to enhance long-term cessation success.
 
 # Introduction
 
@@ -95,8 +99,9 @@ project2 <-  project2 %>%
 ```
 
 
-`Table 1` shows the baseline characteristics of participants by treatment group and overall sample. The treatment groups are combinations of pharmacotherapy (placebo vs varenicline) and behavioral treatment (ST vs BASC). Participants were approximately equally assigned to each of the four treatment groups. In the groups receiving varenicline (ST + varenicline group and BASC + varenicline group), a higher percentage of participants achieved smoking cessation (32% and 31%, respectively) compared to the placebo group (12% in the ST + placebo group and 5.9% in the BASC + placebo group). This suggests that varenicline may be more effective than placebo in helping participants achieve smoking cessation. Looking at the distribution of education levels across the four groups, only a very small number of participants had Grade school education, with only one participant in the BASC + placebo group. The high school level group was also underrepresented in all groups, ranging from 2.9% to 8.4% in each group. Given the low representation of the "Grade school" group and the "Some of the high school" group, it would be reasonable to combine these two groups into the “High school and below” group. This would reduce the sparsity within each treatment group. Similar to education levels, we could also consider combining the income levels "\$50,001-\$75,000" and "\$75,000 and over" into "\$50,000 and over" and merging "blacks and Hispanics" with "Hispanic” in race. Missing values indicate the need for imputation. Therefore, multiple imputation was performed and the imputed data were used in the regression analyses.
+`Table 1` shows the baseline characteristics of participants by treatment group and overall sample. The treatment groups are combinations of pharmacotherapy (placebo vs varenicline) and behavioral treatment (ST vs BASC). Participants were approximately equally assigned to each of the four treatment groups. In the groups receiving varenicline (ST + varenicline group and BASC + varenicline group), a higher percentage of participants achieved smoking cessation (32% and 31%, respectively) compared to the placebo group (12% in the ST + placebo group and 5.9% in the BASC + placebo group). This suggests that varenicline may be more effective than placebo in helping participants achieve smoking cessation. Looking at the distribution of education levels across the four groups, only a very small number of participants had Grade school education, with only one participant in the BASC + placebo group. The high school level group was also underrepresented in all groups, ranging from 2.9% to 8.4% in each group. Given the low representation of the "Grade school" group and the "Some of the high school" group, it would be reasonable to combine these two groups into the “High school and below” group. This would reduce the sparsity within each treatment group. Similar to education levels, we could also consider combining the income levels "\$50,001-\$75,000" and "\$75,000 and over" into "\$50,000 and over". 
 
+`Table 1` also shows that missing data is minimal for most variables, with a few exceptions. For example, Race has 22 missing values (7.3%), Nicotine Metabolism Ratio has 21 missing values (7%), Cigarette Reward Value has 18 missing values (6%), and Readiness to Quit Smoking has 17 missing values (6%). While the overall proportion of missing values is small, these variables are critical for the analysis. To address this, multiple imputation under the assumption of missing at random (MAR) was implemented using the `mice()` function in R to create five imputed datasets, ensuring a robust analysis and minimizing potential bias.
 ```{r out.width="50%", fig.align="center"}
 project2 %>%
   dplyr::select(-c(id, Var, BA, Black, Hisp, NHW)) %>%
@@ -151,7 +156,7 @@ project2 %>%
 
 \newpage
 
-Examining through the distribution of the continuous variables, four variables were found to have skewed distribution, therefore variable transformations were performed (`Figure 1`). Log transformation was performed on Anhedonia (`shaps_score_pq1_log`), and Nicotine Metabolism Ratio (`NMR`). Square root transformations were performed on Substitute Reinforcers (`hedonsum_n_pq1`), and  Complementary Reinforcers (`hedonsum_y_pq1`). These transformations effectively reduce the skewness of each variable, making the distributions look more normally distributed. This adjustment is beneficial for statistical analyses that assume normality, as it helps the transformed data align more closely with these assumptions.
+Examining through the distribution of the continuous variables, four variables were found to have skewed distribution, therefore variable transformations were performed (`Figure 1`). Log transformation was performed on Anhedonia (`shaps_score_pq1_log`), and Nicotine Metabolism Ratio (`NMR`). Square root transformations were performed on Substitute Reinforcers (`hedonsum_n_pq1`), and  Complementary Reinforcers (`hedonsum_y_pq1`). These transformations effectively reduce the skewness of each variable, making the distributions look more normally distributed. Such adjustments are beneficial for statistical analyses as they minimize the impact of extreme outliers; however, they may also reduce the interpretability of the transformed variables.
 ```{r out.width="80%", fig.align="center"}
 # Apply log/sqrt transformations to the specified variables
 project2_trans <- project2 %>%
@@ -258,9 +263,9 @@ for (i in 1:5) {
 
 An exploratory analysis was conducted to identify patterns and relationships within the data prior to performing regression analysis. This preliminary investigation aimed to uncover potential trends and insights that could inform the subsequent modeling approach and enhance the interpretation of the regression results. 
 
-`Figure 2` visualizes the number of participants who achieved smoking abstinence, broken down by clinically relevant variables, such as smoking behavior and mental health diagnoses, and colored by the four treatment groups. The "ST + varenicline" and "BASC + varenicline" groups generally show higher smoking abstinence rates across, indicating that varenicline, either alone or with behavioral activation support (BASC), may be more effective than placebo in helping participants achieve smoking abstinence. This trend appears across a variety of behavioral and mental health variables, suggesting potential benefits of the varenicline treatment for a general smoking population. Focusing on depression-related variables — Other lifetime DSM-5 diagnosis, Current vs past MDD, and antidepressant medication — we observe differences in smoking abstinence counts between the two varenicline treatment groups: BASC + varenicline and ST + varenicline. Across these variables, the count of smoking abstinence instances is generally equal or higher in the BASC + varenicline group compared to the ST + varenicline group. This could indicate a possible interaction between the behavioral activation (BASC) approach and varenicline in supporting smoking abstinence for individuals with depressive symptoms or related diagnoses and highlighting the potential need for tailored interventions or additional support for participants with these characteristics. For variables related to smoking behavior, 5 minutes after waking up and menthol cigarette user, the bars show that the number of smoking abstinence cases was generally higher in the varenicline group (ST+varenicline and BASC+varenicline) compared with the placebo group, suggesting that pharmacotherapy is an important factor in achieving smoking abstinence. However, there was no indication that the type of behavioral treatment (ST vs. BASC) affected outcomes in each pharmacotherapy condition.
+`Figure 2` illustrates the proportion and number of participants achieving smoking abstinence, stratified by Behavioral Activation (BASC) treatment groups, with lighter colors representing no abstinence and more solid colors indicating abstinence. Across clinically relevant variables, such as antidepressant use, mental health diagnoses, and smoking behavior, differences in abstinence rates are observed. For antidepressant medication users, abstinence was more frequent in the BASC group (38%) compared to the ST group (17%). However, menthol cigarette users receiving BASC had lower abstinence rates (35%) compared to those in the ST group (65%). Similarly, among individuals with high nicotine dependence (smoking within 5 minutes of waking), the BASC group achieved lower abstinence rates (29%) compared to the ST group (48%). These patterns suggest that while BASC supports smoking cessation for some subgroups, its effectiveness may vary, particularly when compared to standard treatment in certain populations.
 
-```{r out.width="100%", fig.align="center"}
+```{r out.width="80%", fig.align="center"}
 # Prepare data by selecting binary variables and reshaping to long format
 project2_bi_summary <- na.omit(project2) %>%
   dplyr::select(abst, ftcd.5.mins, otherdiag, antidepmed, mde_curr, Only.Menthol, Group) %>%
@@ -276,32 +281,55 @@ project2_bi_summary <- na.omit(project2) %>%
   ) %>%
   group_by(Group, Variable, Value) %>%
   summarize(sum_abst = sum(abst=="Yes"), .groups = "drop") %>%
-  arrange(Group, Variable, Value)
+  arrange(Group, Variable, Value) %>% 
+  mutate(Variable = ifelse(Variable == "Other lifetime DSM-5 diagnosis", "Other lifetime DSM-5", Variable),
+         Group = ifelse(Group %in% c("BASC + placebo", "BASC + varenicline"), "BASC", "ST")) %>% 
+  group_by(Group, Variable, Value) %>%  # Group by Group, Variable, and Value
+  summarize(sum_abst = sum(sum_abst), .groups = "drop") %>%  # Summarize to remove duplicates
+  group_by(Group, Variable) %>%  # Regroup by Group and Variable
+  mutate(Proportion = sum_abst / sum(sum_abst))
 
 # Create the plot
-ggplot(data = project2_bi_summary, aes(x = Variable, y = sum_abst, fill = Group, alpha = as.factor(Value))) +
-  geom_bar(stat = "identity", position = "dodge") +
-  scale_fill_manual(values = c("#F4BE85", "#F1CE75", "#B2D1E8", "#B2E8B2"), name = "Group") +
-  scale_alpha_manual(values = c("Yes" = 1, "No" = 0.5),name = "Status", labels = c( "No", "Yes")) +  # Adjust alpha for Value
-  coord_flip() +  # Flip coordinates for horizontal layout
-  labs(
-    x = "Variables",
-    y = "Number of Smoking Abstinence",
-    title = "Figure 2: Number of Smoking Abstinence by Group"
-  ) +
+ggplot(project2_bi_summary, aes(x = Group, y = sum_abst, fill = Group, alpha = Value)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ Variable, strip.position = "bottom") +  # Separate plots for each variable with facet labels at the bottom
   theme_minimal() +
+  labs(
+    x = "Group",
+    y = "Count",  # Update y-axis label to reflect counts
+    title = "Figure 2: Number of Smoking Abstinence by Group",
+    fill = "Behavioral activation",
+    alpha = "Abstinence"
+  ) +
+  geom_text(
+    aes(
+      label = scales::percent(Proportion, accuracy = 1)  # Use pre-computed Proportion
+    ),
+    position = position_stack(vjust = 0.5),  # Position text in the middle of the bar
+    size = 4,
+    color = "black",
+    fontface = "bold"
+  ) +
+  scale_alpha_manual(
+    values = c("No" = 0.4, "Yes" = 1),
+    guide = guide_legend(override.aes = list(alpha = c(0.4, 1)))
+  ) +
   theme(
-    plot.title = element_text(size = 10, face = "bold"),
-    axis.text.x = element_text(size = 8),
+    title = element_text(size = 8, face = "bold"),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),  # Remove x-axis text
+    axis.ticks.x = element_blank(),  # Remove x-axis ticks
+    axis.title.y = element_text(size = 8, face = "bold"),
     axis.text.y = element_text(size = 8),
-    axis.title.x = element_text(size = 9),  # Make x-axis title smaller
-    axis.title.y = element_text(size = 9),
-    legend.title = element_text(size = 8)
+    strip.text = element_text(size = 6, face = "bold"),
+    legend.position = "bottom",  
+    legend.title = element_text(size = 8, face = "bold"),
+    legend.text = element_text(size = 6) 
   )
 ```
 
 
-`Table 2` summarizes the number and percentage of smokers who achieved cessation across various education and income levels within four treatment groups. Generally, the "ST + varenicline" and "BASC + varenicline" groups had higher cessation rates across both education and income categories, suggesting the efficacy of varenicline in aiding smoking cessation. Among education levels, "College graduate" and "Some college/technical school" participants showed particularly high cessation rates in the "ST + varenicline" and "BASC + varenicline" groups, while "High school graduate or GED" individuals also had notable cessation rates, especially within "ST + varenicline." In terms of income, higher income brackets, especially those earning "\$35,001–50,000" and "More than More than \$75,000" had higher cessation rates within the "BASC + varenicline" group, while the "ST + varenicline" group showed consistent cessation rates across various income levels, including lower-income categories. These results suggest that varenicline may be effective across a diverse range of demographic groups.
+`Table 2` summarizes the number and percentage of smokers who achieved cessation across various education and income levels within four treatment groups. Generally, the "ST + varenicline" and "BASC + varenicline" groups had higher cessation rates across both education and income categories, suggesting the efficacy of varenicline in aiding smoking cessation. Among education levels, "College graduate" and "Some college/technical school" participants showed particularly high cessation rates in the "ST + varenicline" and "BASC + varenicline" groups, while "High school graduate or GED" individuals also had notable cessation rates, especially within "ST + varenicline." In terms of income, higher income brackets, especially those earning "\$35,001–50,000" and "More than More than \$50,000" had higher cessation rates within the "BASC + varenicline" group, while the "ST + varenicline" group showed consistent cessation rates across various income levels, including lower-income categories. These results suggest that varenicline may be effective across a diverse range of demographic groups.
 
 ```{r out.width="60%", fig.align='center'}
 # Create summary table for count and percentage of smoking abstinence by Education Level and Income Level
@@ -329,6 +357,11 @@ header_row$Variables <- "Education Level"
 abstinence_by_edu_group <- rbind(header_row, abstinence_by_edu_group)
 
 abstinence_by_inc_group <- na.omit(project2) %>%
+  mutate(inc = factor(case_when(inc=="Less than $20,000" ~ "Less than $20,000",
+                           inc=="$20,000–35,000" ~ "$20,000–35,000",
+                           inc=="$35,001–50,000" ~ "$35,001–50,000",
+                           inc=="$50,001–75,000" | inc=="More than $75,000" ~ "$More than $50,000"))) %>% 
+  mutate(inc = factor(inc, levels = c("Less than $20,000", "$20,000–35,000", "$35,001–50,000", "$More than $50,000"))) %>% 
   group_by(inc, Group) %>%
   # Calculate count of abstinent individuals and percentage within each group
   summarize(
@@ -376,7 +409,7 @@ tab_style(
 
 \newpage
 
-`Table 3` summarizes continuous variables related to smoking behavior, psychological factor (Anhedonia), and readiness to quit, stratified by treatment group and smoking abstinence status ("Yes" or "No"). The comparison between participants who successfully quit smoking and those who did not reveals a consistent pattern across treatment groups: successful smoking cessation is associated with lower nicotine dependence (as measured by FTCD scores), fewer cigarettes smoked per day, and lower anhedonia scores. This trend holds true regardless of the type of treatment group, suggesting that these factors may be the key predictors of smoking cessation success across both pharmacological and behavioral interventions. The Nicotine Metabolism Ratio (NMR) is a measure of how quickly an individual metabolizes nicotine. Faster nicotine metabolizers tend to experience shorter-lasting effects of nicotine, which can lead to smoking more frequently to maintain nicotine levels. NMR is often considered when assessing an individual's likelihood to quit smoking, as those with a higher metabolism rate might find it more challenging to quit due to the need for more frequent dosing. In this table, we observe that the NMR is generally higher in the smoking abstinence ("Yes") group compared to the non-abstinent ("No") group across most treatment conditions, with the exception of the ST + placebo group. This pattern suggests that, for most treatments, individuals with a higher nicotine metabolism rate had better success in achieving abstinence.
+`Table 3` summarizes the mean and standard error (SE) of continuous variables related to smoking behavior, psychological factors (e.g., Anhedonia), and readiness to quit smoking. The table is stratified by treatment group (ST + placebo, BASC + placebo, ST + varenicline, BASC + varenicline) and smoking abstinence status ("Yes" or "No") The comparison between participants who successfully quit smoking and those who did not reveals a consistent pattern across treatment groups: successful smoking cessation is associated with lower nicotine dependence (as measured by FTCD scores), fewer cigarettes smoked per day, and lower anhedonia scores. This trend holds true regardless of the type of treatment group, suggesting that these factors may be the key predictors of smoking cessation success across both pharmacological and behavioral interventions. The Nicotine Metabolism Ratio (NMR) is a measure of how quickly an individual metabolizes nicotine. Faster nicotine metabolizers tend to experience shorter-lasting effects of nicotine, which can lead to smoking more frequently to maintain nicotine levels. NMR is often considered when assessing an individual's likelihood to quit smoking, as those with a higher metabolism rate might find it more challenging to quit due to the need for more frequent dosing. In this table, we observe that the NMR is generally higher in the smoking abstinence ("Yes") group compared to the non-abstinent ("No") group across most treatment conditions, with the exception of the ST + placebo group. This pattern suggests that, for most treatments, individuals with a higher nicotine metabolism rate had better success in achieving abstinence.
 
 ```{r out.width="80%", fig.align='center'}
 # Create summary table for continuous variables stratified by those who achieved smoking abstinence and those did not
@@ -398,10 +431,16 @@ project2_con_summary <- project2 %>%
     values_to = "Value"
   ) %>%
   group_by(Group, abst, Variable) %>%
-  summarize(mean_value = mean(Value, na.rm = TRUE), .groups = "drop") %>%
+  summarize(
+    mean_value = mean(Value, na.rm = TRUE),
+    se_value = sd(Value, na.rm = TRUE) / sqrt(n()),
+    .groups = "drop"
+  ) %>%
+  mutate(mean_se = paste0(round(mean_value, 2), " (", round(se_value, 2), ")")) %>%
+  select(Group, abst, Variable, mean_se) %>%
   pivot_wider(
     names_from = c(Group, abst),
-    values_from = mean_value,
+    values_from = mean_se,
     names_glue = "{Group}_{abst}"
   )
 
@@ -409,10 +448,6 @@ project2_con_summary <- project2 %>%
 project2_con_summary %>%
   gt(rowname_col = "Variable") %>%
   tab_header(title = "Table 3: Summary of Continuous Variables by Group and Smoking Abstinence") %>%
-  fmt_number(
-    columns = everything(),
-    decimals = 2
-  ) %>% 
   cols_label(
     `ST + placebo_No` = "No",
     `ST + placebo_Yes` = "Yes",
@@ -438,19 +473,44 @@ project2_con_summary %>%
   tab_spanner(
     label = "BASC + varenicline",
     columns = c(`BASC + varenicline_No`, `BASC + varenicline_Yes`)
-  )%>% 
+  ) %>%
   tab_options(
     table.font.size = px(8),
     heading.title.font.size = px(8)
-  ) %>% 
+  ) %>%
   cols_width(
     Variable ~ px(200),
     everything() ~ px(50)
   ) %>%
-    tab_style(
-      style = cell_text(weight = "bold", align = "center"),
-      locations = cells_column_labels(everything())
-    )
+  tab_style(
+    style = cell_text(weight = "bold", align = "center"),
+    locations = cells_column_labels(everything())
+  )
+```
+
+`Figure 3` shows the pairwise correlations among continuous clinical variables, revealing a moderate positive correlation between "FTCD score" and "Cigarettes per day" (r = 0.52), indicating some shared information between these variables. Most other correlations, such as those involving "Nicotine Metabolism Ratio" and "Readiness to quit smoking," are weak, suggesting minimal risk of multicollinearity. While the moderate correlation warrants attention to ensure it does not unduly influence the model, the weak correlations imply that the variables can be included with little concern for redundancy.
+```{r out.width="80%", fig.align='center'}
+project2_cor <- project2 %>%
+  dplyr::select(bdi_score_w00, ftcd_score, cpd_ps, crv_total_pq1, 
+                hedonsum_n_pq1, hedonsum_y_pq1, shaps_score_pq1, 
+                NMR, readiness) %>%
+  rename(`BDI score` = `bdi_score_w00`,
+         `FTCD score` = ftcd_score,  
+         `Cigarettes per day` = cpd_ps, 
+         `Cigarette reward value` = crv_total_pq1, 
+         `Pleasurable Events Scale (substitute)` = hedonsum_n_pq1, 
+         `Pleasurable Events Scale (complementary)` = hedonsum_y_pq1, 
+         `Anhedonia` = shaps_score_pq1, 
+         `Nicotine Metabolism Ratio` = NMR, 
+         `Readiness to quit smoking` = readiness) 
+
+cor_matrix <- cor(project2_cor, use = "complete.obs")
+
+corrplot(cor_matrix, method = "color", type = "lower", 
+         tl.col = "black", tl.cex = 0.5, addCoef.col = "black",
+         number.cex = 0.7, col = colorRampPalette(c("steelblue", "white", "steelblue"))(200))
+title("Figure 3: Correlation Plot among Continuous Clinical Variables", 
+      cex.main = 0.9, line = 0) 
 ```
 
 
@@ -459,17 +519,15 @@ project2_con_summary %>%
 ## Methods
 Lasso (Least Absolute Shrinkage and Selection Operator) is well-suited for achieving the goals of this project, as it enables the identification of baseline variables that act as significant predictors or moderators of end-of-treatment (EOT) abstinence while effectively managing the complexity of the data. In this context, the trial data includes a large number of baseline variables, some of which may be highly correlated or only marginally relevant to abstinence outcomes. Lasso helps in this setting by applying a regularization penalty that shrinks less relevant coefficients to zero, effectively selecting only the most predictive and informative variables. This approach addresses the issue of overfitting and improves the model's interpretability by reducing the number of predictors to those most strongly associated with abstinence.
 
-The regression analysis involved several key steps: First, missing data was handled through multiple imputations, creating five complete datasets. Each imputed dataset was then split into training (70%) and testing (30%) sets while maintaining the proportion of the treatment combination of the behavior and pharmacotherapy treatment maintained in both the training and testing sets. This helps us to make sure that both training and testing sets have a similar distribution of each category. LASSO regression with 10-fold cross-validation was applied to the training data to identify the optimal regularization parameter (lambda), which minimized the cross-validation error and selected important features by shrinking irrelevant coefficients to zero. The best-fit LASSO model was then applied to the test data, with model performance assessed through AUC (Area Under the Curve) scores and ROC (Receiver Operating Characteristic) curves for both training and testing datasets. Finally, coefficients from each imputed dataset were averaged to summarize feature importance across imputations, providing a robust model evaluation that accounts for missing data, regularization, and performance validation.
-
-```{r out.width="80%", fig.align='center'}
-# Define the function
-perform_cv_lasso_mod <- function(data, seed = 2550) {
-
+The regression analysis followed a structured sequence of steps. First, missing data was handled using multiple imputations, resulting in five complete datasets. Each imputed dataset was subjected to 10 bootstrapping iterations, where the dataset was resampled with replacement to generate diverse subsets for model evaluation. This approach introduced an additional layer of variability, enhancing the stability of model estimates. Then, each bootstrapped dataset was split into training (70%) and testing (30%) subsets, ensuring that the proportions of behavioral and pharmacotherapy treatment combinations in the training and testing sets were consistent with those in the bootstrapped dataset. LASSO regression with 10-fold cross-validation was applied to the training data to identify the optimal regularization parameter (lambda), which minimized the cross-validation error and selected important features by shrinking irrelevant coefficients to zero. The best-fit LASSO model was then applied to the test data, with model performance assessed through AUC (Area Under the Curve) scores and ROC (Receiver Operating Characteristic) curves for both training and testing datasets. Finally, coefficients from each imputed dataset were averaged to summarize feature importance across imputations, providing a robust model evaluation that accounts for missing data, regularization, and performance validation.
+```{r warning=FALSE, message=FALSE}
+perform_cv_lasso_mod <- function(data, seed = 2550, bootstrap_iterations = 10) {
   # Initialize lists to store results
   best_lambdas <- list()
   coef_list <- list()
   auc_list <- list()
-  roc_plots <- list()  
+  roc_plots <- list()
+  bootstrap_results <- list()
   train_data_full <- NULL
   test_data_full <- NULL
 
@@ -478,150 +536,161 @@ perform_cv_lasso_mod <- function(data, seed = 2550) {
     # Complete the imputed dataset
     project2_imputed_s <- data[[i]]
     
-    # Split data into training and testing sets
-    set.seed(seed)
-    train_index <- createDataPartition(project2_imputed_s$Group, p = 0.7, list = FALSE)
-    train_data <- project2_imputed_s[train_index, ]
-    test_data <- project2_imputed_s[-train_index, ]
-    train_data_full <- bind_rows(train_data_full, train_data)
-    test_data_full <- bind_rows(test_data_full, test_data)
-    
-    train_data$foldid <- NA
-    for (group in unique(train_data$Group)) {
-      group_data <- train_data[train_data$Group == group, ]
-      fold_idex <- sample(rep(1:10, length.out = nrow(group_data)))
-      train_data$foldid[train_data$Group == group] <- fold_idex
+    # Perform bootstrap iterations
+    for (b in 1:bootstrap_iterations) {
+      # Generate bootstrap sample
+      set.seed(seed + b)  # Ensure reproducibility for each bootstrap iteration
+      bootstrap_sample <- project2_imputed_s[sample(1:nrow(project2_imputed_s), replace = TRUE), ]
+      
+      # Split bootstrapped dataset into training and testing sets
+      set.seed(seed + b)  # Reuse the same seed for consistency
+      train_index <- createDataPartition(bootstrap_sample$Group, p = 0.7, list = FALSE)
+      train_data <- bootstrap_sample[train_index, ]
+      test_data <- bootstrap_sample[-train_index, ]
+      
+      # Combine train and test datasets
+      train_data_full <- bind_rows(train_data_full, train_data)
+      test_data_full <- bind_rows(test_data_full, test_data)
+      
+      # Assign folds for cross-validation in training data
+      train_data$foldid <- NA
+      for (group in unique(train_data$Group)) {
+        group_data <- train_data[train_data$Group == group, ]
+        fold_idex <- sample(rep(1:10, length.out = nrow(group_data)))
+        train_data$foldid[train_data$Group == group] <- fold_idex
+      }
+
+      # Create model matrices for training data
+      x_mat <- model.matrix(
+        abst ~ BA * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 +
+                       cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt +
+                       shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log +
+                       Only.Menthol + readiness + Race) +
+          Var * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 +
+                   cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt +
+                   shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log +
+                   Only.Menthol + readiness + Race),
+        data = train_data
+      )[, -1]
+      y <- train_data$abst
+
+      # Perform LASSO cross-validation to find the best lambda
+      lasso_model_cv <- cv.glmnet(
+        x_mat, y, alpha = 1, nfolds = 10, foldid = train_data$foldid,
+        family = "binomial"
+      )
+
+      # Fit LASSO model with the optimal lambda
+      best_lambda <- lasso_model_cv$lambda.min
+      best_lambdas[[paste(i, b)]] <- best_lambda  # Store the best lambda for this iteration
+      lasso_model <- glmnet(
+        x_mat, y, alpha = 1, lambda = best_lambda, family = "binomial"
+      )
+
+      # Store the coefficients with names
+      coef_list[[paste(i, b)]] <- as.matrix(coef(lasso_model))[, , drop = FALSE]
+
+      # Evaluate the model on the test set
+      x_mat_test <- model.matrix(
+        abst ~ BA * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 +
+                       cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt +
+                       shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log +
+                       Only.Menthol + readiness + Race) +
+          Var * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 +
+                   cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt +
+                   shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log +
+                   Only.Menthol + readiness + Race),
+        data = test_data
+      )[, -1]
+      y_test <- test_data$abst
+
+      # Predict probabilities on the test data
+      test_predictions <- predict(lasso_model, newx = x_mat_test, type = "response")
+
+      # Calculate AUC
+      test_roc <- roc(y_test, as.vector(test_predictions))
+      test_auc <- auc(test_roc)
+      auc_list[[paste(i, b)]] <- test_auc
+
+      # Store bootstrap results
+      bootstrap_results[[paste(i, b)]] <- list(
+        best_lambda = best_lambda,
+        coefficients = coef_list[[paste(i, b)]],
+        auc = test_auc
+      )
     }
-    
-    # Create model matrices for the training data
-    x_mat <- model.matrix(abst ~ BA * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 + cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt + shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log + Only.Menthol + readiness + Race) + Var * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 + cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt + shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log + Only.Menthol + readiness + Race), data = train_data)[, -1]
-    y <- train_data$abst
-    
-    # Perform LASSO cross-validation to find the best lambda
-    lasso_model_cv <- cv.glmnet(x_mat, y, alpha = 1, nfolds = 10, foldid = train_data$foldid, family = "binomial")
-    
-    #  Fit LASSO model with the optimal lambda
-    best_lambda <- lasso_model_cv$lambda.min
-    best_lambdas[[i]] <- best_lambda  # Store the best lambda for this iteration
-    lasso_model <- glmnet(x_mat, y, alpha = 1, lambda = best_lambda, family = "binomial")
-   
-    # Store the coefficients with names
-    coef_list[[i]] <- as.matrix(coef(lasso_model))[, , drop = FALSE]  # Exclude intercept, keep names
-    
-    #  Calculate AUC and create ROC plots for both training and test data
-    x_mat_test <- model.matrix(abst ~ BA * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 + cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt + shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log + Only.Menthol + readiness + Race) + Var * (age_ps + sex_ps + inc + edu + ftcd_score + ftcd.5.mins + bdi_score_w00 + cpd_ps + crv_total_pq1 + hedonsum_n_pq1_sqrt + hedonsum_y_pq1_sqrt + shaps_score_pq1_log + otherdiag + antidepmed + mde_curr + NMR_log + Only.Menthol + readiness + Race), data = test_data)[, -1]
-    y_test <- test_data$abst
-    
-    # Predict probabilities on the training and test data
-    train_predictions <- predict(lasso_model, newx = x_mat, type = "response")
-    test_predictions <- predict(lasso_model, newx = x_mat_test, type = "response")
-    
-    # Calculate AUC and ROC curves
-    train_roc <- roc(y, as.vector(train_predictions))
-    test_roc <- roc(y_test, as.vector(test_predictions))
-    train_auc <- auc(train_roc)
-    test_auc <- auc(test_roc)
-    auc_list[[i]] <- list(train_auc = train_auc, test_auc = test_auc)
-    
-    # Extract specificity and sensitivity for plotting
-    train_roc_data <- data.frame(
-      specificity = rev(train_roc$specificities),
-      sensitivity = rev(train_roc$sensitivities)
-    )
-    test_roc_data <- data.frame(
-      specificity = rev(test_roc$specificities),
-      sensitivity = rev(test_roc$sensitivities)
-    )
-    
-    # Generate the ROC plot
-    roc_plot <- ggplot() +
-      geom_line(data = train_roc_data, aes(x = 1 - specificity, y = sensitivity, color = "Training"), size = 1) +
-      geom_line(data = test_roc_data, aes(x = 1 - specificity, y = sensitivity, color = "Testing"), size = 1) +
-      geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "black") +
-      scale_color_manual(values = c("Training" = "blue", "Testing" = "red"), 
-                         labels = c(paste("Training (AUC =", round(train_auc, 2), ")"), 
-                                    paste("Testing (AUC =", round(test_auc, 2), ")"))) +
-      labs(title = paste("Imputation", i, "- ROC Curve"),
-           x = "False Positive Rate",
-           y = "True Positive Rate") +
-      theme_minimal() +
-      theme(legend.position = c(0.75, 0.15))
-    
-    # Store the plot in the list
-    roc_plots[[i]] <- roc_plot
   }
-  
+
   # Combine the coefficient lists into a matrix and calculate the average coefficients
   coef_matrix <- do.call(cbind, coef_list)  # Combine list of named vectors into a matrix
   avg_coef <- rowMeans(coef_matrix, na.rm = TRUE)
-  
-  # Return results as a list,
+
+  # Return results as a list
   list(
     best_lambdas = best_lambdas,
     coef_list = coef_list,
     auc_list = auc_list,
-    coef_matrix = coef_matrix,
+    bootstrap_results = bootstrap_results,
     avg_coef = avg_coef,
     train_data_full = train_data_full,  # Return the combined dataset
-    test_data_full = test_data_full,
-    roc_plots = roc_plots  # List of ROC plots
+    test_data_full = test_data_full
   )
 }
 
-# Run the function on imputed dataset
-results_mod <- perform_cv_lasso_mod(data = project2_imp_trans, seed = 1234)
+# Run the function with bootstrap
+results_mod <- perform_cv_lasso_mod(data = project2_imp_trans, seed = 1234, bootstrap_iterations = 10)
 ```
 
-## Results
-`Table 4` summarizes the exponentiated non-zero coefficient estimates obtained from a Lasso logistic regression model predicting the likelihood of smoking abstinence based on various covariates and interaction terms between treatment groups and baseline characteristics. The estimates shown are in odds ratio, with an odds ratio greater than 1 suggesting a positive association with smoking abstinence, while an odds ratio less than 1 indicates a negative association. The "Proportion Non-Zero" column in the table provides insight into the stability and importance of each covariate across multiple imputations in the Lasso logistic regression model, reflecting its significance as a predictor of smoking abstinence. A higher proportion suggests that the variable is more important and stable across imputations, while a lower proportion indicates a less consistent association with the outcome.  The variables Education Level (College graduate), FTCD score, BASC : Current vs past MDD, and Varenicline: Age, and Varenicline : Income ($35,001–50,000) were significant across all five imputations, suggesting that they have a strong and stable association with smoking abstinence. These covariates likely play a meaningful role in predicting abstinence and may be considered reliable predictors in the model. In contrast, BASC :FTCD score, Race (Non-Hispanic White), and Varenicline : Cigarette reward value showed less consistent association with the outcome, with being significant 0.8, 0.6 and 0.2 percent of the time. 
-
 ```{r}
-# Extract coef_matrix from the results
-coef_mat_exp_mod <- exp(cbind(results_mod$coef_matrix[-1,], results_mod$avg_coef[-1]))
-
-# Create a data frame to summarize non-zero coefficients
-tbl_coef_mod_non_zero <- data.frame(Covariate = rownames(coef_mat_exp_mod))
-
-# Add columns for each imputation's coefficients
-for (i in 1:6) {
-  tbl_coef_mod_non_zero[[paste("Imputation", i)]] <- coef_mat_exp_mod[, i]
+# Create a summary table for coefficients across imputed datasets
+create_summary_table <- function(coef_list) {
+  # Combine coefficients across imputations
+  coef_matrix <- do.call(cbind, coef_list)
+  
+  # Calculate the average coefficient for each covariate
+  avg_coeff <- rowMeans(coef_matrix, na.rm = TRUE)
+  
+  # Calculate the proportion of non-zero coefficients across imputations
+  non_zero_counts <- rowSums(coef_matrix != 0, na.rm = TRUE)
+  proportion_non_zero <- non_zero_counts / ncol(coef_matrix)
+  
+  coef_matrix_exp <- exp(coef_matrix)
+  avg_coeff_exp <- exp(avg_coeff)
+  
+  # Create a summary dataframe
+  summary_table <- data.frame(
+    Covariate = rownames(coef_matrix),
+    `Imputation 1` = coef_matrix_exp[, 1],
+    `Imputation 2` = coef_matrix_exp[, 2],
+    `Imputation 3` = coef_matrix_exp[, 3],
+    `Imputation 4` = coef_matrix_exp[, 4],
+    `Imputation 5` = coef_matrix_exp[, 5],
+    Average = avg_coeff_exp,
+    `Proportion Non-Zero` = proportion_non_zero
+  )
+  
+  # Round the values for better readability
+  summary_table <- summary_table %>% 
+    mutate(across(-Covariate, ~ round(., 4)))
+  
+  return(summary_table)
 }
 
-# Calculate the proportion of non-zero coefficients for each covariate
-tbl_coef_mod_non_zero$Proportion_Non_Zero <- rowMeans(results_mod$coef_matrix[-1,] != 0)
-
-# Filter to show only covariates that have non-zero coefficients 
-tbl_coef_mod_non_zero <- tbl_coef_mod_non_zero[tbl_coef_mod_non_zero$Proportion_Non_Zero >= 0.2, ]
-
-# Rename name of covariates
-tbl_coef_mod_non_zero <- tbl_coef_mod_non_zero %>% 
-  mutate(Covariate = case_when( Covariate=="eduCollege graduate" ~ "Edu (College graduate)",
-    Covariate=="ftcd_score" ~ "FTCD score",
-                               #Covariate=="shaps_score_pq1_log" ~ "log(Anhedonia)",
-                               #Covariate=="NMR_log" ~ "log(NMR)",
-                               Covariate=="RaceNon-hispanic White" ~ "Race (Non-hispanic White)",
-                               Covariate=="BA1:ftcd_score" ~ "BASC :FTCD score",
-                               Covariate=="BA1:mde_currYes" ~ "BASC : Current vs past MDD",
-                               Covariate=="age_ps:Var1" ~ "Varenicline : Age",
-                               Covariate=="inc$35,001–50,000:Var1" ~ "Varenicline : Income ($35,001–50,000)",
-     Covariate=="crv_total_pq1:Var1" ~ "Varenicline : Cigarette reward value"
-    )) 
-
-# Create summary table
-tbl_coef_mod_non_zero %>%
+# Assuming `coef_list` contains the list of coefficient matrices for all imputations
+summary_table <- create_summary_table(results_mod$coef_list)
+summary_table %>% 
+  filter(Covariate == "BA1" | Covariate == "Var1" | Proportion.Non.Zero > 0.6) %>%
   mutate(across(starts_with("Imputation"),
                 ~ ifelse(. == 1, "-", sprintf("%.4f", .)))) %>%  
-  mutate(Proportion_Non_Zero = sprintf("%.2f", Proportion_Non_Zero)) %>%  
+  #mutate(Proportion_Non_Zero = sprintf("%.2f", Proportion_Non_Zero)) %>%  
   gt() %>%  
   cols_label(
-    Covariate = "Covariate",
-    `Imputation 1` = "Imputation 1",
-    `Imputation 2` = "Imputation 2",
-    `Imputation 3` = "Imputation 3",
-    `Imputation 4` = "Imputation 4",
-    `Imputation 5` = "Imputation 5",
-    `Imputation 6` = "Average",
-    Proportion_Non_Zero = "Proportion Non-Zero"
+    `Imputation.1` = "Imputation 1",
+    `Imputation.2` = "Imputation 2",
+    `Imputation.3` = "Imputation 3",
+    `Imputation.4` = "Imputation 4",
+    `Imputation.5` = "Imputation 5",
+    Proportion.Non.Zero = "Proportion Non-Zero"
   ) %>%
   tab_header(
     title = "Table 4: Summary of Non-Zero Coefficient Estimates in Exponential Scale"
@@ -645,16 +714,25 @@ tbl_coef_mod_non_zero %>%
       locations = cells_column_labels(everything())
     )
 ```
-Focusing initially on the primary effects, education level demonstrates a positive association with smoking abstinence, as indicated by an odds ratio of 1.07. This suggests that individuals with a college degree have 7% greater odds of achieving smoking abstinence compared to those with lower education levels, while accounting for other covariates. The FTCD score, which assesses nicotine dependence, presents an odds ratio of 0.85; thus, each additional point increase in FTCD score corresponds to a 15% reduction in the odds of smoking abstinence. This finding underscores the need for more intensive support for individuals with higher levels of dependence. Additionally, the odds ratio for race (Non-Hispanic White) at 1.03 suggests that Non-Hispanic White smokers have a 3% greater likelihood of achieving smoking abstinence compared to smokers of other racial/ethnic backgrounds.
 
-Turning to the interactions involving the Behavioral Activation for Smoking Cessation (BASC) intervention, the data indicate moderating effects from both nicotine dependence, as measured by the FTCD score, and depression status (current versus past MDD). The interaction between BASC and FTCD score has an average odds ratio of 0.9974, implying that with each additional unit increase in FTCD score, representing higher nicotine dependence, the odds of smoking abstinence slightly decline by 0.3% when the BASC intervention is in place. From a moderation perspective, this implies that while higher nicotine dependence marginally weakens the association between BASC and smoking abstinence, the impact may be modest. Similarly, the interaction between BASC and current versus past major depressive disorder (MDD) status has an average odds ratio of 0.86. This implies that participants with current MDD may have about 14% lower odds of achieving smoking abstinence when compared to those with past MDD, within the context of the BASC intervention, consistent with patterns shown in `Figure 2`. This moderating effect suggests that current MDD may act as a psychological barrier to the effectiveness of the BASC intervention, potentially due to factors associated with active depressive symptoms, such as reduced motivation or higher levels of stress. 
 
-In examining pharmacotherapy-related interactions, three interactions involving age, income level, and cigarette reward value appeared as significant predictors of smoking abstinence in the context of Varenicline use. The average odds ratio for the interaction between Varenicline and age is 1.0124, indicating that with each additional year of age, the odds of smoking abstinence among individuals using Varenicline increase by approximately 1.24%, adjusted for other covariates. Older individuals might experience slightly enhanced benefits from Varenicline, potentially due to factors such as greater motivation or life stage considerations related to health. For the interaction between Varenicline and income within the range of \$35,001–\$50,000, the average odds ratio is 1.1800, indicating that individuals in this income bracket who use Varenicline have an 18% higher likelihood of achieving smoking abstinence compared to those outside this income range. This is consistent with patterns shown in `Table 2`. The interaction between Varenicline and cigarette reward value has an average odds ratio of 1.0018, which is very close to 1, suggesting a negligible effect on smoking abstinence. The proportion non-zero value of 0.20 indicates that this interaction was non-zero in only 20% of imputations, suggesting a weak and inconsistent effect. This implies that the perceived reward value of cigarettes has minimal impact on the effectiveness of Varenicline in achieving smoking cessation. The low impact and inconsistency may be due to Varenicline’s strong pharmacological effects, which could diminish the relevance of the reward value perception associated with smoking.
+## Results
+`Table 4` presents the exponentiated non-zero coefficient estimates derived from a Lasso logistic regression model predicting the likelihood of smoking abstinence, incorporating various covariates and interaction terms between treatment groups and baseline characteristics. The coefficient estimates are expressed as odds ratios, where values greater than 1 indicate a positive association with smoking abstinence, while values less than 1 represent a negative association. The columns under each imputation show the average coefficient values across bootstrap samples, while the "Average" column aggregates the averages across all bootstrap samples in the five imputed datasets. The "Proportion Non-Zero" column captures the consistency and importance of each variable, reflecting the proportion of times a variable retained a non-zero coefficient across all imputations and bootstraps. Higher proportions indicate greater stability and significance of a variable, whereas lower proportions suggest a weaker and less consistent association with smoking abstinence.
+
+The variables `FTCD score`, `NMR_log`, and `eduHigh school graduate or GED:Var1` were significant across all timw, with FTCD score and NMR_log showing non-zero coefficients in 100% and 84% of the time, respectively, underscoring their strong and consistent associations with smoking abstinence. Conversely, variables such as `BA1:inc$35,001–50,000` and `BA1:Only.MentholYes` were less stable, showing non-zero coefficients in 68% of the time, suggesting a more variable association with the outcome. Treatment vriables `Var1` and `BA1` consistently showed no meaningful association with smoking abstinence, with a "Proportion Non-Zero" of 0.
+
+
+For the primary effects, income level (inc More than 50,000) showed an increase in the likelihood of smoking abstinence, with an average odds ratio of 1.3552. This indicates that individuals earning more than 50,000 annually are approximately 35% more likely to achieve smoking abstinence compared to those earning less than 20,000. The FTCD score, representing nicotine dependence, exhibited a negative association with abstinence, with an average odds ratio of 0.7194, meaning that for every unit increase in FTCD score, the odds of smoking abstinence decrease by approximately 28%. Finally, NMR_log, which represents the log-transformed nicotine metabolism ratio (NMR), had an average odds ratio of 1.3442, suggesting that higher values of the log-transformed NMR are associated with a 34% increase in the likelihood of achieving smoking abstinence. This highlights the potential impact of faster nicotine metabolism, captured on a logarithmic scale, on the increased odds of smoking cessation.
+
+Turning to the interactions involving the Behavioral Activation (BA) treatment, the data reveal nuanced patterns. The interaction between BA1 and income level 35,001–50,000 yielded an average odds ratio of 1.99 and was non-zero 68% of the time. This suggests a relatively moderate level of stability and significance, indicating that participants in this income bracket receiving the BA intervention had approximately twice the odds of achieving smoking abstinence compared to those earning less than 20,000. Conversely, the interaction between BA1 and menthol cigarette use (BA1:Only.MentholYes) had an average odds ratio of 0.81. This indicates that menthol cigarette users receiving the BA intervention had about 19% lower odds of achieving abstinence compared to non-menthol users. These findings highlight both the potential benefits of BA for specific demographic subgroups, such as individuals with an income of $35,001–50,000, and the challenges it may pose for others, particularly menthol cigarette users. This suggests that income level and menthol cigarette use are important factors that moderate the effectiveness of BA in achieving smoking abstinence. Consistent with Figure 2, menthol cigarette users in the BA group achieved lower abstinence rates compared to those in the standard treatment (ST) group.
+
+The interaction term between Varenicline and education level (eduHigh school graduate or GED:Var1) demonstrated a strong positive relationship, with an average odds ratio of 1.66, indicating that individuals with a high school diploma or GED had approximately 66% higher odds of achieving smoking abstinence compared to those with only grade school education. This result, supported by a high proportion of non-zero values (86% of the time), underscores the stable and meaningful role of educational attainment in enhancing the effectiveness of pharmacotherapy. This finding aligns with the data in Table 2, where smokers with a high school diploma or GED showed higher cessation rates under the Varenicline treatment arms, particularly in the ST + Varenicline group, reinforcing the importance of education level as a moderator of pharmacotherapy outcomes. Similarly, the interaction between Varenicline and sex (sex_psYes:Var1) showed an average odds ratio of 1.42, suggesting that women may derive additional benefits from Varenicline treatment, with moderately consistent results appearing 68% of the time. This finding aligns with prior evidence suggesting gender-based differences in response to pharmacotherapy, potentially due to physiological or behavioral factors influencing smoking cessation outcomes. The interaction between Varenicline and age (age_ps:Var1) revealed an average odds ratio of 1.01, signifying a slight but positive association, where each additional year of age marginally increases the likelihood of smoking abstinence. This effect, present in 84% of imputations, suggests that older individuals may experience slightly better outcomes with Varenicline, potentially reflecting greater life stage-related motivation or enhanced adherence to cessation programs. These findings collectively highlight the nuanced impact of demographic factors on the success of pharmacotherapy interventions.
 
 ## Model Performance
 
-To evaluate the model's performance, ROC and calibration plots were generated, and the area under the ROC curve (AUC) was calculated. The ROC curve and AUC assess the model's classification performance, while the calibration plot evaluates how well the predicted probabilities align with the observed outcome probabilities. Predictions were made using the average coefficient estimates and combined train and test sets from five imputed datasets. As illustrated in `Figure 3`, both the training and testing sets achieved an AUC of 0.76, indicating that, on average, the model has a 76% likelihood of correctly distinguishing between positive and negative cases. This AUC reflects a robust and reliable ability to predict smoking abstinence. The consistency of the AUC between training and testing sets suggests that the model has good generalizability, with no substantial drop in classification performance when applied to unseen data.
+To evaluate the model's performance, ROC and calibration plots were generated, and the area under the curve (AUC), accuracy, sensitivity, and specificity were calculated. The ROC curve and AUC assess the model's classification performance, while the calibration plot evaluates how well the predicted probabilities align with the observed outcome probabilities. Predictions were made using the average coefficient estimates and combined train and test sets from five imputed datasets. As illustrated in `Figure 3`, the training sets achieved an AUC of 0.87, while the testing sets achieved an AUC of 0.83, both indicating that, on average, the model has around an 80% likelihood of correctly distinguishing between positive and negative cases. This AUC reflects a robust and reliable ability to predict smoking abstinence. The consistency of the AUC between training and testing sets suggests that the model has good generalizability, with no substantial drop in classification performance when applied to unseen data.
 
+The performance metrics of the final model, as shown in `Table 5,` reveal strong predictive capability with some trade-offs. The accuracy of 0.81 across both training and testing datasets indicates that the model correctly classifies approximately 81% of cases, reflecting consistent performance across datasets. Additionally, the high sensitivity values of 0.98 and 0.96 for the training and testing sets, respectively, suggest that the model is highly effective at identifying individuals who achieve smoking abstinence (true positives). However, the low specificity values of 0.22 and 0.24 indicate that the model has difficulty correctly identifying individuals who do not achieve abstinence (true negatives), leading to a higher rate of false positives. While the model's high sensitivity may be advantageous for certain applications, the low specificity highlights a limitation in accurately predicting non-abstinent individuals, which could impact its utility depending on the context.
 
 ```{r out.width="60%", fig.align='center'}
 # Plot ROC and AUC
@@ -676,8 +754,8 @@ x_mat_test_full <- model.matrix(abst ~ BA * (age_ps + sex_ps + inc + edu + ftcd_
                            data = results_mod$test_data_full)
 
 # 2. Calculate predictions for training and testing data using avg_coef
-train_linear_predictor <- x_mat_train_full %*% results_mod$avg_coef
-test_linear_predictor <- x_mat_test_full %*% results_mod$avg_coef
+train_linear_predictor <- x_mat_train_full %*% log(summary_table$Average)
+test_linear_predictor <- x_mat_test_full %*% log(summary_table$Average)
 
 train_predicted_prob <- 1 / (1 + exp(-train_linear_predictor))
 test_predicted_prob <- 1 / (1 + exp(-test_linear_predictor))
@@ -687,6 +765,7 @@ train_roc <- roc(results_mod$train_data_full$abst, as.vector(train_predicted_pro
 test_roc <- roc(results_mod$test_data_full$abst, as.vector(test_predicted_prob))
 train_auc <- auc(train_roc)
 test_auc <- auc(test_roc)
+
 
 # Plot ROC for Train and Test Data
 roc_plots <- ggplot() +
@@ -710,7 +789,55 @@ roc_plots <- ggplot() +
   theme(legend.position = c(0.8, 0.15))
 
 annotate_figure(roc_plots,
-                top = text_grob("Figure 3: ROC Curve Using Average Coefficients", face = "bold", size = 10))
+                top = text_grob("Figure 4: ROC Curve Using Average Coefficients", face = "bold", size = 10))
+```
+
+```{r}
+# ACC
+train_predictions_binary <- ifelse(train_predicted_prob >= 0.5, "Yes", "No")
+train_acc <- mean(train_predictions_binary == results_mod$train_data_full$abst)
+
+test_predictions_binary <- ifelse(test_predicted_prob >= 0.5, "Yes", "No")
+test_acc <- mean(test_predictions_binary == results_mod$test_data_full$abst)
+
+# Sensitivity and Specificity
+train_conf_matrix <- table(train_predictions_binary, results_mod$train_data_full$abst)
+train_sens <- sensitivity(train_conf_matrix)
+train_spec <- specificity(train_conf_matrix)
+
+test_conf_matrix <- table(test_predictions_binary, results_mod$test_data_full$abst)
+test_sens <- sensitivity(test_conf_matrix)
+test_spec <- specificity(test_conf_matrix)
+
+# 5. Create a Summary Table
+summary_table <- data.frame(
+  Metric = c("AUC", "Accuracy", "Sensitivity", "Specificity"),
+  Train = c(round(train_auc, 2), round(train_acc, 2), round(train_sens, 2), round(train_spec, 2)),
+  Test = c(round(test_auc, 2), round(test_acc, 2), round(test_sens, 2), round(test_spec, 2))
+)
+
+summary_table %>% 
+  gt() %>%
+  tab_header(
+    title = "Table 5: Performance of the FInal Model"
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_column_labels()
+  ) %>% 
+  tab_options(
+    table.font.size = px(10),
+    heading.title.font.size = px(10)
+  ) %>% 
+  cols_width(
+    everything() ~ px(80)
+  ) %>% 
+    tab_style(
+      style = cell_text(weight = "bold", align = "center"),
+      locations = cells_column_labels(everything())
+    ) 
 ```
 
 The calibration plot further examines the alignment between predicted and observed probabilities (`Figure 4`). The 45-degree line in the plot represents perfect calibration, where predicted probabilities match the observed outcomes. In the training set, the points are generally close to the calibration line, indicating that the model is well-calibrated. However, there is a slight deviation below the line at higher predicted probability levels, suggesting a mild tendency to over predict the likelihood of smoking abstinence in these cases. In contrast, the calibration plot for the testing set shows greater deviation from the diagonal line, indicating that the model is less well-calibrated on the test data than on the training data. Specifically, the model underpredicts probabilities at lower levels (with points falling below the line) and overpredicts at higher levels (with points above the line). These discrepancies suggest that while the model is reasonably well-calibrated on the training data, it exhibits calibration issues when applied to new, unseen data.
@@ -744,15 +871,15 @@ calibration_plot_test <- calibration_plot(data = calibration_data_test, obs = "a
 
 # Arrange plots
 grid.arrange(calibration_plot_train, calibration_plot_test, ncol = 2) %>% 
-  annotate_figure(top = text_grob("Figure 4: Calibration Plots", face = "bold", size = 10))
+  annotate_figure(top = text_grob("Figure 5: Calibration Plots", face = "bold", size = 10))
 ```
 
 # Discussion
 The EDA revealed that demographic and behavioral factors such as age, education, and baseline nicotine dependence influence cessation outcomes. For instance, higher education levels and moderate income level were associated with greater smoking abstinence rates, suggesting socioeconomic factors may play a role in treatment efficacy. Additionally, individuals with lower nicotine dependence scores and fewer current depressive symptoms exhibited better outcomes, highlighting the importance of addressing dependence levels and mental health symptoms in smoking cessation strategies.
 
-The regression analysis identified education level (college graduate), FTCD score, BASC with current FTCD score, BASC with current MDD, Varenicline with age, and Varenicline with income (\$35,001–\$50,000) as strong predictors of smoking abstinence. College graduates had 7% higher odds of abstinence, while higher nicotine dependence reduced abstinence likelihood by 15% per unit increase. BASC's effectiveness was slightly reduced by high nicotine dependence and active MDD, while varenicline's effectiveness improved with age and moderate income. The model achieved an AUC of 0.76, indicating reliable classification performance; however, calibration issues in the test data suggest that further refinement of the predictive model may be necessary.
+The regression analysis identified several key predictors of smoking abstinence, including the log-scale nicotine metabolism ratio (NMR), FTCD score, interactions of BASC with income (\$35,001–\$50,000) and only menthol use, and interactions of varenicline with age, sex, and education level (high school graduate or higher). A higher NMR was associated with a 34% increase in the odds of abstinence, while each unit increase in nicotine dependence (FTCD score) reduced the odds of abstinence by 28%. The effectiveness of BASC was slightly diminished for individuals who exclusively smoked menthol cigarettes, while varenicline's effectiveness improved with increasing age, female sex, and higher education levels. The model demonstrated strong classification performance, achieving an AUC of 0.87 in training and 0.83 in testing. However, calibration issues observed in the test data indicate the need for further refinement to improve predictive accuracy and reliability.
 
-However, several limitations should be considered. First, the sample size, while adequate for initial findings, may limit the generalizability of results. Specific subgroups, such as those with varying income levels or education backgrounds, may respond differently to BASC and varenicline, but the sample size in each subgroup was relatively small, potentially affecting the robustness of subgroup analyses. In addition, the need to split the data into training and testing sets, followed by further division of the training set for cross-validation to tune model parameters, reduces the effective data in each subset. The limited data per subset may decrease model stability and generalizability, suggesting that results should be interpreted with caution. A larger sample size in future studies would improve the robustness and predictive reliability of the analysis. Another limitation, rooted in the constraints of the clinical trial, was low treatment adherence, particularly in the BASC-alone group. This low adherence affects the analysis by potentially underestimating the effectiveness of BASC, as participants may not have received sufficient intervention exposure to achieve meaningful outcomes. As a result, the study’s findings may not fully reflect the treatment’s potential impact, limiting the generalizability and strength of the conclusions.
+However, several limitations should be considered. First, the sample size, while adequate for initial findings, may limit the generalizability of results. Specific subgroups, such as those with varying income levels or education backgrounds, may respond differently to BASC and varenicline, but the sample size in each subgroup was relatively small, potentially affecting the robustness of subgroup analyses. In addition, the need to split the data into training and testing sets, followed by further division of the training set for cross-validation to tune model parameters, reduces the effective data in each subset. The limited data per subset may decrease model stability and generalizability, suggesting that results should be interpreted with caution. A larger sample size in future studies would improve the robustness and predictive reliability of the analysis. Also, splitting the test and train datasets after imputation introduces a data leakage problem, as information from the imputation process, which is influenced by the entire dataset, could inadvertently inform the training or testing stages. Another limitation, rooted in the constraints of the clinical trial, was low treatment adherence, particularly in the BASC-alone group. This low adherence affects the analysis by potentially underestimating the effectiveness of BASC, as participants may not have received sufficient intervention exposure to achieve meaningful outcomes. As a result, the study’s findings may not fully reflect the treatment’s potential impact, limiting the generalizability and strength of the conclusions. Additionally, the use of variable transformations introduces a limitation in terms of interpretability. Four variables were either square root or log-transformed, which, while effective in improving model performance by reducing skewness and mitigating the influence of outliers, results in a loss of direct interpretability of the coefficients. Further studies are needed to quantify the extent of improvement achieved due to these transformations and determine whether such transformations are necessary for predictive performance. If the improvement in predictive accuracy and model stability outweighs the loss in interpretability, transformations may be deemed a worthwhile step. However, if the benefits are marginal, it may be preferable to maintain raw variable forms to preserve the clarity and interpretability of the model. This evaluation would be essential to balance the trade-offs between model performance and practical usability.
 
 # References
 

@@ -39,13 +39,18 @@ Environmental conditions are critical for endurance sports such as marathons and
 
 ## Introduction
 
-The implications of weather conditions on athletics performance in endurance exercises such as marathons have raised considerable attention over the past few years. Among all weather-related factors, temperature (i.e., heat or cold), relative humidity (i.e., dry or humid), wind speed, solar radiation, and air quality were considered to have the largest potential effect on undermining athletic performance. Previous studies have found that the decline in performance is associated with warmer temperatures. Older people, in particular, suffer from impaired thermoregulation and hence weakened ability to dissipate heat, which may further exacerbate the effects of warmer temperatures. In addition, there are well-documented sex differences in endurance performance and physiological processes related to thermoregulation.
+The influence of weather conditions on athletic performance, especially in endurance activities such as marathons, has raised considering attention in recent years. Marathon running presents an extraordinary physical challenge, requiring sustained performance over a long distance, which is heavily influenced by the body's ability to regulate temperature and adapt to environmental factors. Among weather-related variables, temperature (both heat and cold), relative humidity, wind speed, solar radiation, and air quality have been identified as key contributors to performance outcomes. Research by Ely et al. (2007) found that higher temperatures can significantly slow marathon runners, with the impact worsening as temperatures increase. Older adults face additional challenges due to age-related declines in physiological functions like reduced sweating, diminished skin blood flow, and lower heart function, making them less able to handle heat or conserve warmth in cold conditions (Kenney & Munce, 2003). Sex differences also play a role in how runners handle weather, as women’s higher surface area-to-mass ratio can help them lose heat better in hot and humid environments, but their lower sweat production compared to men may limit this benefit. Conversely, men’s greater sweating capacity gives them an advantage in dry heat (Yanovich et al., 2020). Understanding these differences is essential for exploring how weather impacts marathon performance across age groups and genders, helping athletes prepare and minimize risks during races.
 
-This report explores the relationship between age and marathon performance in men and women. Exploring the impact of environmental conditions including temperature, relative humidity, solar radiation, and wind speed on marathon performance, and whether the impact differs across age and gender. Identifying the weather conditions that have the largest impact on marathon performance.
+This report, in collaboration with Dr. Brett Romano Ely and Dr. Matthew Ely from the Department of Health Sciences at Providence College, aims to explore the interactions between age, sex, and environmental conditions in influencing marathon performance. It investigates the specific effects of factors such as temperature, humidity, solar radiation, and wind, while examining how these variables uniquely impact runners across different ages and genders. By identifying the weather conditions with the greatest impact, this analysis seeks to inform preparation strategies and enhance safety measures for a diverse range of marathon participants.
 
 ## Data Collection
 
-Data used in this report was provided by Dr. Brett Romano Ely and Dr. Matthew Ely. Data collected in the study were coded into four seperate datasets: `project 1`, `aqi_values`, `course_record`, and `marathon_dates`. The major dataset is `project 1` which included the top single-age performances from five major marathons across 17-23 years from men and women, with detailed information on weather conditions for each marathon. The performance variable `%CR` was coded as the percent of the current course record. The `%CR` value indicates how many percentage points slower the participant's performance was than the couse record. A low `%CR` value indicates that the performance is close to the current course record. Since Wet Bulb Globe Temperature (WBGT) is calculated as $\text{WBGT} = 0.7 \cdot \text{Wet Bulb Globe Temperature} + 0.2 \cdot \text{Black Bulb Globe Temperature} + 0.1 \cdot \text{White Bulb Globe Temperature}$, and the variable `Flag` was grouped into five categories based on the value of WBGT and risk of heat illness, the temperature-related variables in the data are expected to be highly correlated. The other three datasets `aqi_values`, `course_record` and `marathon_dates` contain information on air quality, course records, and dates of each marathon respectively. 
+
+Data used in this report was provided by Dr. Brett Romano Ely and Dr. Matthew Ely. The primary dataset includes top single-age performances from five major marathons over 17–23 years for both men and women, along with detailed weather conditions for each marathon. The performance variable, `%CR`, represents the percentage by which a participant's performance deviates from the current course record. A lower `%CR` value indicates a performance closer to the course record. Wet Bulb Globe Temperature (WBGT) was calculated using the formula $\text{WBGT} = 0.7 \cdot \text{Wet Bulb Globe Temperature} + 0.2 \cdot \text{Black Bulb Globe Temperature} + 0.1 \cdot \text{White Bulb Globe Temperature}$, and the variable `Flag` was grouped into five categories based on the value of `WBGT` and risk of heat illness, the temperature-related variables in the data are expected to be highly correlated. 
+
+The other two datasets provide information on air quality and course records, respectively. The AQI dataset, however, required modifications before merging with the primary dataset. This dataset contains detailed air quality measurements across multiple sites, dates, and durations (e.g., 1-hour, 8-hour, and 24-hour averages), including variables such as local dates, county codes, and marathon names. To align the AQI data with the primary dataset, it was summarized to focus on broader air quality trends relevant to marathon events, which typically span several hours and cover large areas. Hourly measurements were excluded to minimize unnecessary variability, while longer-duration averages (e.g., 8-hour and 24-hour averages) provided a more stable and representative measure of air quality. The `ymd()` function from the `lubridate` package was used to standardize the local date variable into a consistent format and extract the year, which was essential for summarizing the AQI data. The summarized data includes the average AQI for each marathon and its corresponding year. The modified AQI dataset and the course record dataset were then merged with the primary dataset by Year and Marathon, enabling a comprehensive analysis of the combined data.
+
+
 
 ## Data Pre-processing
 
@@ -83,7 +88,7 @@ Project1 <- Project1 %>%
 
 ```
 
-Based on the age distribution, a categorical variable `age_grp` with five levels was created for later exploratory analyses. The five levels were < 25 years, 25-39 years, 40-54 years, 55-69 years, and >= 70 years. The number of participants in each age group is shown in `Table 1`. There were more participants in the middle-aged age group compared to the oldest and youngest age groups.
+The chosen age cutoffs are supported by research findings and reflect meaningful shifts in physical capabilities relevant to marathon performance. Research suggests that marathon performance typically peaks between the ages of 25 and 35, with a noticeable decline starting around age 35. This decline becomes more evident in the 40–54 age group, as runners in this range often experience the cumulative effects of aging, including reduced maximal oxygen uptake (VO2 max), slower recovery times, and decreased muscle mass, all of which impact endurance and speed. The decline continues into the 55–69 age group, where physiological changes such as further reductions in VO2 max, increased susceptibility to injury, and a general slowing of metabolic processes significantly affect performance. The sharp declines observed in runners aged  $\ge 70$ years further justify this categorization, as performance in this group is typically marked by advanced aging effects. These cutoffs align with well-documented life stages in endurance capabilities (Zavorsky et al., 2017). Additionally, these age cutoffs create a balanced distribution of participants, ensuring reasonable proportions in each group for analysis. As shown in `Table 1`, the <25 years group and the $\ge 70$ years group both contain around 14% of participants, while the 25–39 years group, 40–54 years group, and 55–69 years group each contain approximately 24% of participants. Smaller proportions in the youngest and oldest age groups and larger proportions in the middle categories reflect the typical demographic distribution of marathon participants, as younger and older runners are less common compared to those in their peak and middle-age years. These distributions demonstrate that the cutoffs effectively capture a broad range of participants and maintain sufficient representation across all age groups.
 
 ```{r}
 # Summary Table 1 (N by gender and age group)
@@ -193,9 +198,11 @@ Project1_tbl_w %>%
 
 # Marathon Performance by Age and Gender
 
-We started examining the effects of increasing age on marathon performance in both men and women by getting a general idea of how the distribution of the average percentage off the current record (`%CR`) would vary across age groups. In this data set, the minimum age was 14 years, and the maximum age was 91 years.
+We first examined the effects of increasing age on marathon performance in both men and women. The analysis began by exploring the relationship between age and performance using age as a continuous variable, followed by an examination using age groups. The minimum age was 14 years, and the maximum age was 91 years.
 
-`Figure 2` shows the distribution of `%CR` for the five age groups. There were differences in the shape of the distributions across age groups, with the 25-39 age group having the narrowest distribution and the >=70 age group having the most spread out distribution. This suggests there was less variation in the performance of the participants aged between 25 and 39 compared to the older and younger age groups. In addition, the mean value of `%CR` appeared to be the smallest in the 25-39 age group, which suggests that participants in this age group tended to perform better compared to the other age groups. We may expect that the top performance was achieved by the participants in this age group. The >=70 and 55-69 age groups had the largest and second-largest variations in performance. 
+`Figure 2` shows the interaction between %CR (percent off the current course record) and age for men (panel A) and women (panel B), highlighting a clear "U-shaped" non-linear relationship. This suggests the need for a quadratic term for age when fitting the model. Performance, as measured by %CR, improves steadily during younger ages, with runners gaining speed and efficiency as they progress from adolescence (ages 15–19) into early adulthood (ages 20–29). However, these improvements slow in the late 20s and early 30s, marking the peak performance years. The blue dots in the plot indicate the ages of peak performance: age 30 for men (7.13 %CR) and age 28 for women (12.27 %CR). After the peak, as age increases beyond 30, %CR steadily rises, indicating a gradual decline in performance. Between ages 30 and 70, men’s %CR increases from 7 to 83, representing an increase of 76, while women’s %CR increases from 12 to 106, reflecting an increase of 94. This increase in %CR, or decline in performance, reflects natural aging processes, with women showing a larger decline in this age range.
+
+After age 70, the decline in performance accelerates sharply. Men’s %CR increases from 83 to over 300, while women’s %CR rises from 106 to over 300, with men showing a larger decline during this phase. This suggests that age has a greater impact on men’s performance in their later years compared to women’s. The red dashed line at age 70 marks this turning point, where the steep decline highlights the effects of advanced aging, including significant losses in endurance and strength. The widening confidence intervals in both panels reflect greater variability in performance among older runners, likely due to differences in health, training history, and adaptation to aging.
 ```{r}
 # Mean CR% by Age (male)
 male_summary <- Project1 %>%
@@ -218,28 +225,59 @@ female_summary <- Project1 %>%
   )
 ```
 
-
 ```{r fig.align='center', out.width="80%"}
-## 1.1 Distribution in Mean CR% by Age
-gender_summary <- merge(male_summary, female_summary, by="Age..yr.") %>% 
-  pivot_longer(cols = c(mean_CR.x, mean_CR.y), values_to = "mean_CR", names_to = "Sex") %>% 
-  mutate(age_grp = cut(Age..yr., breaks = c(0, 24, 39, 54, 69, Inf),
-                                  include.lowest = TRUE, 
-                                  labels = c("< 25 yrs", "25-39 yrs", "40-54 yrs", "55-69 yrs", ">= 70 yrs")),
-         age_grp = factor(age_grp, levels = c("< 25 yrs", "25-39 yrs", "40-54 yrs", "55-69 yrs", ">= 70 yrs"))) 
+## 1.3 Interaction Plot (Age and %CR by gender)
+# Plot (Male)
+p_age_male <- ggplot(male_summary, aes(x = Age..yr., y = mean_CR)) +
+  geom_point(color = "grey", size = 1) +          # Add points for the mean
+  geom_errorbar(aes(ymin = mean_CR - se_CR, ymax = mean_CR + se_CR), width = 1, color = "grey") +  # Add error bars
+  geom_smooth(se = FALSE, color = "black", size = 1, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
+  geom_vline(xintercept = 70, linetype = "dashed", color = "red", size = 0.8) +
+  annotate("text", x = 65, y = 300, label = "Age = 70", color = "red", angle = 90, size = 4, hjust = 0) +  
+  geom_point(aes(x = 30, y = 7.13), color = "blue", size = 2) +
+  geom_hline(yintercept = 7.13, linetype = "dashed", color = "blue", size = 0.8) +
+  annotate("text", x = 25, y = 60, label = "(30, 7.13)", color = "blue", angle = 0, size = 4, hjust = 0) +  
+  labs(title = "Men", x = "Age (yrs)", y = "Best Time (%CR)") +  
+  ylim(0, 400) +                                   
+  theme_minimal(base_size = 15) +                  
+  theme(plot.title = element_text(hjust = 0.5, size=14),
+        axis.title.x = element_text(size = 12),             
+        axis.title.y = element_text(size = 12))
 
-# Density Plot for %CR by Age Group
-gender_summary %>%
-  ggplot(aes(mean_CR, fill = age_grp)) +
-  geom_density(alpha = 0.5) + 
-  labs(x = "Mean %CR (Percent off current course record)",
-       y = "Density",
-       title = "Figure 2: Distribution in mean %CR by Age Group",
-       fill = "Age Group") +
-  theme_minimal()
+# Plot (Female)
+p_age_female <- ggplot(female_summary, aes(x = Age..yr., y = mean_CR)) +
+  geom_point(color = "grey", size = 1) +          # Add points for the mean
+  geom_errorbar(aes(ymin = mean_CR - se_CR, ymax = mean_CR + se_CR), width = 1, color = "grey") +  # Add error bars
+  geom_smooth(se = FALSE, color = "black", size = 1, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
+  geom_vline(xintercept = 70, linetype = "dashed", color = "red", size = 0.8) +
+  annotate("text", x = 65, y = 300, label = "Age = 70", color = "red", angle = 90, size = 4, hjust = 0) +  
+  geom_point(aes(x = 28, y = 12.27), color = "blue", size = 2) +
+  geom_hline(yintercept = 12.27, linetype = "dashed", color = "blue", size = 0.8) +
+  annotate("text", x = 25, y = 60, label = "(28, 12.27)", color = "blue", angle = 0, size = 4, hjust = 0) +  
+  labs(title = "Women", x = "Age (yrs)", y = "Best Time (%CR)") +  
+  ylim(0, 400) +                                   
+  theme_minimal(base_size = 15) +                  
+  theme(plot.title = element_text(hjust = 0.5, size=14),
+        axis.title.x = element_text(size = 12),             
+        axis.title.y = element_text(size = 12))
+
+# Merge
+ggarrange(p_age_male+ rremove("ylab") + rremove("xlab"), 
+          p_age_female+ rremove("ylab") + rremove("xlab"),
+          ncol = 2, nrow = 1, 
+          labels = c("A", "B"), 
+          font.label = list(size = 12),
+          common.legend = TRUE, align = "hv") %>% 
+  annotate_figure(
+    top = text_grob("Figure 2: Interaction between %CR and Age by Gender", 
+                    face = "bold", size = 14),  
+    left = text_grob("Best Time (%CR)", rot = 90),  
+    bottom = text_grob("Age (yrs)") )
 ```
 
-To further explore whether the patterns we saw in the distribution plot apply to all genders, `Table 3` was created to compare the mean `%CR` across age groups and genders. For both males and females, the lowest average `%CR` was found in the 25-39 age group, with a mean of 11.64 for men and 15.55 for women This suggests that men and women in the 25-39 age group had, on average, the best performance, with the times closest to the course record. This is consistent with what was seen in the distribution plot. In the oldest age group (>=70), the mean `%CR` was over 100%, indicating that older participants were more than twice as slow as the course record. Across all age groups, men tended to do slightly better than women, with `%CR` in men lower by 4 to 7 points compared to women. Trends in performance were similar for men and women in all age groups, with a decline in performance below and above the 25-39 age group.
+
+
+To further explore whether the patterns observed in `Figure 2` hold when using age as a categorical variable, `Table 3` was created to compare the mean %CR across age groups and genders. For both men and women, the lowest average %CR was found in the 25–39 age group, with a mean of 11.64 for men and 15.55 for women. This indicates that men and women in the 25–39 age group had, on average, the best performance, with times closest to the course record. In contrast, participants in the oldest age group ($\ge 70$ years) had a mean %CR exceeding 100%, showing that older participants ran more than twice as slow as the course record. Across all age groups, men generally performed slightly better than women, with men’s %CR consistently 4 to 7 points lower than women’s. The trends in performance were similar for men and women across all age groups, showing a decline in performance both below and above the 25–39 age group, reinforcing the "U-shaped" pattern previously observed in `Figure 2`.
 
 ```{r}
 ## 1.2 Summary Statistics of %CR by Age Group and Gender
@@ -298,73 +336,55 @@ summary_sex_grp %>%
   )
 ```
 
-`Figure 3` visualizes the relationship between age and `%CR`, with the mean and standard error of the `%CR` at each age indicated in gray and the overall trend indicated by the black dashed curve. Both men and women show a "U-shaped" curve as age increases. There was a decrease in `%CR` up to a certain age and an increase thereafter. The best results for males occurred around age 30 and for women around age 28, while poorer records occur at younger and older ages. The blue dots in the graph denote the best performances at the respective ages. For example, the best average performance for men occurred at age 30, with a performance 7.13% slower than the course record. The slope of the curve became more stepped after the age of 50, which suggests that the decline was initially gradual but became more pronounced after the age of 50, with an even greater decline after the age of 70. In addition, the decline after age 70 appeared to be greater for men than for women. This may indicate that age has a greater impact on men's performance in their later years compared to women's.
 
 
-```{r fig.align='center', out.width="80%"}
-## 1.3 Interaction Plot (Age and %CR by gender)
-# Plot (Male)
-p_age_male <- ggplot(male_summary, aes(x = Age..yr., y = mean_CR)) +
-  geom_point(color = "grey", size = 1) +          # Add points for the mean
-  geom_errorbar(aes(ymin = mean_CR - se_CR, ymax = mean_CR + se_CR), width = 1, color = "grey") +  # Add error bars
-  geom_smooth(se = FALSE, color = "black", size = 1, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
-  geom_vline(xintercept = 70, linetype = "dashed", color = "red", size = 0.8) +
-  annotate("text", x = 65, y = 300, label = "Age = 70", color = "red", angle = 90, size = 4, hjust = 0) +  
-  geom_point(aes(x = 30, y = 7.13), color = "blue", size = 2) +
-  geom_hline(yintercept = 7.13, linetype = "dashed", color = "blue", size = 0.8) +
-  annotate("text", x = 25, y = 60, label = "(30, 7.13)", color = "blue", angle = 0, size = 4, hjust = 0) +  
-  labs(title = "Men", x = "Age (yrs)", y = "Best Time (%CR)") +  
-  ylim(0, 400) +                                   
-  theme_minimal(base_size = 15) +                  
-  theme(plot.title = element_text(hjust = 0.5, size=14),
-        axis.title.x = element_text(size = 12),             
-        axis.title.y = element_text(size = 12))
 
-# Plot (Female)
-p_age_female <- ggplot(female_summary, aes(x = Age..yr., y = mean_CR)) +
-  geom_point(color = "grey", size = 1) +          # Add points for the mean
-  geom_errorbar(aes(ymin = mean_CR - se_CR, ymax = mean_CR + se_CR), width = 1, color = "grey") +  # Add error bars
-  geom_smooth(se = FALSE, color = "black", size = 1, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
-  geom_vline(xintercept = 70, linetype = "dashed", color = "red", size = 0.8) +
-  annotate("text", x = 65, y = 300, label = "Age = 70", color = "red", angle = 90, size = 4, hjust = 0) +  
-  geom_point(aes(x = 28, y = 12.27), color = "blue", size = 2) +
-  geom_hline(yintercept = 12.27, linetype = "dashed", color = "blue", size = 0.8) +
-  annotate("text", x = 25, y = 60, label = "(28, 12.27)", color = "blue", angle = 0, size = 4, hjust = 0) +  
-  labs(title = "Women", x = "Age (yrs)", y = "Best Time (%CR)") +  
-  ylim(0, 400) +                                   
-  theme_minimal(base_size = 15) +                  
-  theme(plot.title = element_text(hjust = 0.5, size=14),
-        axis.title.x = element_text(size = 12),             
-        axis.title.y = element_text(size = 12))
 
-# Merge
-ggarrange(p_age_male+ rremove("ylab") + rremove("xlab"), 
-          p_age_female+ rremove("ylab") + rremove("xlab"),
-          ncol = 2, nrow = 1, 
-          labels = c("A", "B"), 
-          font.label = list(size = 12),
-          common.legend = TRUE, align = "hv") %>% 
-  annotate_figure(
-    top = text_grob("Figure 3: Interaction between %CR and Age by Gender", 
-                    face = "bold", size = 14),  
-    left = text_grob("Best Time (%CR)", rot = 90),  
-    bottom = text_grob("Age (yrs)") )
-```
 \newpage 
 
 # Potential Enviornmental Variables
 
-The purpose of Dr. Eli's study was to examine the effects of environmental conditions (including temperature, humidity, solar radiation, and wind) on lifetime marathon performance in both males and females. In the following analysis, we will focus on only four weather-related variables, namely WBGT, percent humidity, solar radiation, and wind.
+Next, we examine the effects of environmental conditions on marathon performance in both males and females. Figure 3 presents the correlation matrix of environmental variables, guiding the selection of WBGT, humidity, solar radiation, and wind for the analysis. WBGT was chosen as a key variable because it effectively combines multiple components of heat stress into a single measure, as defined by the formula: $\text{WBGT} = 0.7 \cdot \text{Wet Bulb Globe Temperature} + 0.2 \cdot \text{Black Bulb Globe Temperature} + 0.1 \cdot \text{Globe Temperature}$. Given this definition and the high correlations between WBGT, wet bulb temperature, black bulb temperature, and globe temperature (as seen in the plot), we excluded the latter variables to avoid redundancy. Additionally, humidity, solar radiation, and wind were included as they provide distinct environmental information not fully encompassed by WBGT, ensuring the exploration considers the unique contributions of these factors.
 
-## Wet Bulb Globe Temperature (WBGT)
+```{r fig.align='center', out.width="85%"}
+Project1_name <- Project1_merged %>%
+  rename(
+    #"% CR" = X.CR,
+         "Dry bulb Temp" = Td..C,
+         "Wet bulb Temp" = Tw..C,
+         "Percent relative humidity" = X.rh,
+         "Globe Temp" = Tg..C,
+         "Solar Radiation" = SR.W.m2,
+         "Average AQI" = ave_aqi,
+         "Dew Point" = DP
+         )
+r <- cor(Project1_name[, c(6:14,17)], use="complete.obs")
 
-Recalling the description of the variables Wet Bulb Globe Temperature (WBGT), it is a measure of temperature taking into account dry, wet, and global temperatures and was used to explore the relationship between temperature and marathon performance. High WBGT values would lead to high levels of environmental heat stress, meaning that it will be more challenging for the body to regulate its internal temperature. And this can make physical activities, like running a marathon, much more taxing and potentially dangerous.
+variable_order <- c("Dry bulb Temp", "Wet bulb Temp", 
+                    "Globe Temp", "Solar Radiation", "Wind",
+                    "Percent relative humidity", "Average AQI", "Dew Point", "WBGT"
+                    #, "% CR"
+                    )
 
-`Figure 4` visualizes the relationship between WBGT and the marathon performance (`%CR`) for different age groups of men and women. The dots in the graph indicate the average performance of different age groups at different WBGT levels. The plot was organized into two panels, one for women and the other for men. Smoothed lines were fitted to the data points to get an overall picture of the trends.
+# Reorder the correlation matrix based on the new variable order
+r_reordered <- r[variable_order, variable_order]
 
-The fitted lines are always at the bottom for the 25-39 age group and always at the top for the >=70 age group, suggesting that regardless of changes in the WBGT conditions, on average, the 25-39 age group always outperforms the other age groups and the >=70 age group always performs the worst on average. This statement holds true for both men and women.
+ggcorrplot(r_reordered, 
+           hc.order = TRUE, 
+           lab_size = 2.5,
+           type = "lower",
+           lab = TRUE) +
+  ggtitle("Figure 3: Correlation Matrix of Environmental Variables") +
+  theme(plot.title = element_text(hjust = 0.5, size=10),
+        axis.text.x = element_text(size = 8),             
+        axis.text.y = element_text(size = 8))
+```
 
-For both men and women in all age groups,`%CR` decreased with increasing WGBT when WGBT was less than 10, while `%CR` increased with increasing WGBT when WBGT was greater than 10. This suggests that when WGBT is less than 10, participants performed better as WGBT increases, while when WGBT is greater than 10, participants performed worse as WGBT increases. The rise and fall in `%CR` with increasing WBGT was clearest among participants in the oldest age group (>=70), showing the greatest change in performance and indicating that they were more likely to be affected by the WBGT. The fitted lines for the younger group are flatter, which means that their performance would not change much depending on the change in the WBGT.
+
+`Figure 4` illustrates the relationship between marathon performance, measured as percentage off the current course record (%CR), and environmental factors: Wet Bulb Globe Temperature (WBGT, panel A), percent relative humidity (panel B), solar radiation (panel C), and wind (panel D). The plots are stratified by age group (<25 years, 25–39 years, 40–54 years, 55–69 years, and $\ge 70$ years), indicated by different colors, and by gender (solid lines for men and dashed lines for women).
+
+
+
 ```{r fig.align='center', out.width="70%"}
 ## 2.1 WBGT (Temperature)
 women_summary_WBGT <- Project1 %>%
@@ -374,7 +394,8 @@ women_summary_WBGT <- Project1 %>%
     mean_CR = mean(X.CR, na.rm = TRUE)
     # ,
     # se_CR = sd(X.CR, na.rm = TRUE)
-  )
+  ) %>% 
+  mutate(Sex = "Women")
 
 men_summary_WBGT <- Project1 %>%
   filter(Sex == 1) %>%
@@ -383,45 +404,33 @@ men_summary_WBGT <- Project1 %>%
     mean_CR = mean(X.CR, na.rm = TRUE)
     # ,
     # se_CR = sd(X.CR, na.rm = TRUE)
+  ) %>% 
+  mutate(Sex = "Men")
+
+# Combine data for both sexes
+combined_summary_WBGT <- bind_rows(women_summary_WBGT, men_summary_WBGT)
+
+# Create a single plot
+plot_WBGT <- ggplot(combined_summary_WBGT, aes(x = WBGT, y = mean_CR, color = age_grp, linetype = Sex)) +
+  geom_smooth(se = FALSE, size = 0.7, method = "loess") +  # Add smooth line without confidence intervals
+  labs(
+    #title = "Figure 4: Interaction between %CR and WBGT with Age by Gender",
+    x = "WBGT",
+    y = " ",
+    color = "Age Group",
+    linetype = "Gender"
+  ) +
+  ylim(0, 200) +  # Set y-axis limit
+  theme_minimal(base_size = 15) +  # Use minimal theme with larger font
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    legend.text = element_text(size = 5),
+    legend.title = element_text(size = 6)
   )
-
-p_WBGT_women <- ggplot(women_summary_WBGT, aes(x = WBGT, y = mean_CR, color = age_grp)) +
-  geom_point(size = 0.8, alpha = 0.5) +          # Add points for the mean
-  geom_smooth(se = TRUE, size = 1, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
-  # facet_zoom(ylim = c(100, 150)) +
-  labs(title = "Women", x = "WBGT", y = "Best Time (%CR)", color = "Age Group") +  # Add labels and title
-  ylim(0, 200) +                                   # Set y-axis limit
-  theme_minimal(base_size = 15) +                  # Use minimal theme with larger font
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
-        axis.title.x = element_text(size = 12),             
-        axis.title.y = element_text(size = 12),
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size = 12))
-
-p_WBGT_men <- ggplot(men_summary_WBGT, aes(x = WBGT, y = mean_CR, color = age_grp)) +
-  geom_point(size = 0.8, alpha = 0.5) +          # Add points for the mean
-  geom_smooth(se = TRUE, size = 1, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
-  labs(title = "Men", x = "WBGT", y = "Best Time (%CR)", color = "Age Group") +  # Add labels and title
-  ylim(0, 200) +                                   # Set y-axis limit
-  theme_minimal(base_size = 15) +                  # Use minimal theme with larger font
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
-        axis.title.x = element_text(size = 12),             
-        axis.title.y = element_text(size = 12),
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size = 12))
-
-ggarrange(p_WBGT_women+ rremove("ylab"), 
-                    p_WBGT_men+ rremove("ylab"), 
-                    common.legend = TRUE, legend = "bottom", align = "hv") %>% 
-  annotate_figure(top = text_grob("Figure 4: Interaction between %CR and WBGT with Age by Gender", face = "bold", size = 13),
-                left = text_grob("Best Time (%CR)", rot = 90, size = 15))
-
 ```
 
-## Percent Humidity
-
-`Figure 5` visualizes the relationship between average humidity and `%CR` for different age groups of men and women. The oldest age group (>=70 yrs) had the curviest fitted lines, indicating that this age group had the greatest fluctuation in marathon performance (`%CR`) with humidity. Marathon performance for this age group first increased from about 0 to 50, then became stable between 50 and 80, and finally increased after 80. 
-The 55-69 age group showed a similar trend, but the fluctuations were not as pronounced as for the >=70 age group. There was a steady trend in the performance of participants in all age groups between 50 and 80 humidity, indicating that the performance did not change much when the relative humidity percentage fall into this range. The much flatter fitted line for the younger age groups suggests that participants in these age groups are less affected by humidity. The relationship between humidity and marathon performance was similar for males and females.
 
 ```{r fig.align='center', out.width="70%"}
 women_summary_hum <- Project1 %>%
@@ -431,7 +440,8 @@ women_summary_hum <- Project1 %>%
     mean_CR = mean(X.CR, na.rm = TRUE)
     # ,
     # se_rh = sd(X.rh, na.rm = TRUE)
-  )
+  ) %>% 
+  mutate(Sex = "Women")
 
 men_summary_hum <- Project1 %>%
   filter(Sex == 1) %>%
@@ -440,42 +450,32 @@ men_summary_hum <- Project1 %>%
     mean_CR = mean(X.CR, na.rm = TRUE)
     # ,
     # se_rh = sd(X.rh, na.rm = TRUE)
+  ) %>% 
+  mutate(Sex = "Men")
+
+# Combine data for both sexes
+combined_summary_hum <- bind_rows(women_summary_hum, men_summary_hum)
+
+# Create a single plot
+plot_hum <- ggplot(combined_summary_hum, aes(x = X.rh, y = mean_CR, color = age_grp, linetype = Sex)) +
+  geom_smooth(se = FALSE, size = 0.7, method = "loess") +  # Add smooth line without confidence intervals
+  labs(
+    x = "Percent relative humidity",
+    y = " ",
+    color = "Age Group",
+    linetype = "Gender"
+  ) +
+  ylim(0, 175) +  # Set y-axis limit
+  theme_minimal(base_size = 15) +  # Use minimal theme with larger font
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    legend.text = element_text(size = 5),
+    legend.title = element_text(size = 6)
   )
-
-p_hum_women <- ggplot(women_summary_hum, aes(x = X.rh, y = mean_CR, color = age_grp)) +
-  geom_point(size = 0.8, alpha = 0.5) +          # Add points for the mean
-  geom_smooth(se = TRUE, size = 1, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
-  labs(title = "Women", x = "Percent relative humidity", y = "Best Time (%CR)", color = "Age Group") +  # Add labels and title
-  ylim(0, 200) +                                   # Set y-axis limit
-  theme_minimal(base_size = 15) +                  # Use minimal theme with larger font
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
-        axis.title.x = element_text(size = 12),             
-        axis.title.y = element_text(size = 12),
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size = 12))
-
-p_hum_men <- ggplot(men_summary_hum, aes(x = X.rh, y = mean_CR, color = age_grp)) +
-  geom_point(size = 0.8, alpha = 0.5) +        # Add points for the mean
-  geom_smooth(se = TRUE, size = 1, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
-  labs(title = "Men", x = "Percent relative humidity", y = "Best Time (%CR)", color = "Age Group") +  # Add labels and title
-  ylim(0, 200) +                                   # Set y-axis limit
-  theme_minimal(base_size = 15) +                  # Use minimal theme with larger font
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
-        axis.title.x = element_text(size = 12),             
-        axis.title.y = element_text(size = 12),
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size = 12))
-
-ggarrange(p_hum_women+ rremove("ylab"), 
-                    p_hum_men+ rremove("ylab"), 
-                    common.legend = TRUE, legend = "bottom", align = "hv") %>%
-  annotate_figure(top = text_grob("Figure 5: Interaction between %CR and Humidity with Age by Gender", face = "bold", size = 13),
-    left = text_grob("Best Time (%CR)", rot = 90, size = 15))  
 ```
 
-## Solar Radiation
-
-`Figure 6` visualizes the relationship between solar radiation and marathon performance (“%CR”) for different age groups of men and women. Firstly, according to the position of the fitted line, participants in the age group 25-39 years always performed the best regardless of the variation of solar radiation, followed by the 40-54, <25, 55-69 and >=70 years age groups. When solar radiation is below 500, the fitted lines are relatively flat for the <25, 25-39, and 40-54 age groups for both sexes. This suggests that when solar radiation is in the range of 0-500, it hardly affects the performance of runners aged 14-54 years. There is a “U-shaped" relationship between solar radiation and the performance of females aged 55-69 and >=70 years. This suggests that for female runners in these age groups, performance will first decline and then rise above the 500 solar radiation threshold.
 
 ```{r fig.align='center', out.width="70%"}
 women_summary_SR <- Project1 %>%
@@ -484,7 +484,8 @@ women_summary_SR <- Project1 %>%
   summarise(
     mean_CR = mean(X.CR, na.rm = TRUE),
     se_CR = sd(X.CR, na.rm = TRUE)
-  )
+  ) %>% 
+  mutate(Sex = "Women")
 
 men_summary_SR <- Project1 %>%
   filter(Sex == 1) %>%
@@ -492,51 +493,43 @@ men_summary_SR <- Project1 %>%
   summarise(
     mean_CR = mean(X.CR, na.rm = TRUE),
     se_CR = sd(X.CR, na.rm = TRUE)
-  )
+  ) %>% 
+  mutate(Sex = "Men")
 
-p_SR_women <- ggplot(women_summary_SR, aes(x = SR.W.m2, y = mean_CR, color = age_grp)) +
-  geom_point(size = 0.8, alpha = 0.5) +          # Add points for the mean
-  geom_smooth(se = TRUE, size = 0.8, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
-  labs(title = "Women", x = "Solar Radiatio", y = "Best Time (%CR)", color = "Age Group") +  # Add labels and title
-  ylim(0, 200) +                                   # Set y-axis limit
-  theme_minimal(base_size = 15) +                  # Use minimal theme with larger font
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
-        axis.title.x = element_text(size = 12),             
-        axis.title.y = element_text(size = 12),
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size = 12))
+# Combine data for both sexes
+combined_summary_SR <- bind_rows(women_summary_SR, men_summary_SR)
 
-p_SR_men <- ggplot(men_summary_SR, aes(x = SR.W.m2, y = mean_CR, color = age_grp)) +
-  geom_point(size = 0.8, alpha = 0.5) +         # Add points for the mean
-  geom_smooth(se = TRUE, size = 0.8, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
-  labs(title = "Men", x = "Solar Radiation", y = "Best Time (%CR)", color = "Age Group") +  # Add labels and title
-  ylim(0, 200) +                                   # Set y-axis limit
-  theme_minimal(base_size = 15) +                  # Use minimal theme with larger font
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
-        axis.title.x = element_text(size = 12),             
-        axis.title.y = element_text(size = 12),
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size = 12))
-
-ggarrange(p_SR_women+ rremove("ylab"), 
-                    p_SR_men+ rremove("ylab"), 
-                    common.legend = TRUE, legend = "bottom", align = "hv") %>% 
-  annotate_figure(top = text_grob("Figure 6: Interaction between %CR and Solar Radiation with Age by Gender", face = "bold", size = 12),
-                left = text_grob("Best Time (%CR)", rot = 90, size = 15))  
+# Create a single plot
+plot_SR <- ggplot(combined_summary_SR, aes(x = SR.W.m2, y = mean_CR, color = age_grp, linetype = Sex)) +
+  geom_smooth(se = FALSE, size = 0.7, method = "loess") +  # Add smooth line without confidence intervals
+  labs(
+    x = "Solar Radiatio",
+    y = " ",
+    color = "Age Group",
+    linetype = "Gender"
+  ) +
+  ylim(0, 175) +  # Set y-axis limit
+  theme_minimal(base_size = 15) +  # Use minimal theme with larger font
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    legend.text = element_text(size = 5),
+    legend.title = element_text(size = 6)
+  )  
 ```
 
-## Wind
 
-`Figure 7` visualizes the relationship between Wind and the marathon performance (`%CR`) for different age groups of men and women. On average, men and women in the 25-39 age group always outperformed the other age groups, while men and women in the >=70 age group always performed the worst. The fitted line is more curvy for the oldest age group of females as compared to males. This suggests that changes in wind speed introduce greater variation in marathon performance for older women compared to men. In the oldest age group of females, `%CR` increased and performance decreased when wind speed increased from 0 to 7.5. This was only seen in females, while males had no significant change in `%CR` in this wind speed range. There was no significant change in performance for either sex in the younger group as the wind changed.
 
-```{r fig.align='center', out.width="70%"}
+```{r fig.align='center', out.width="100%"}
 women_summary_wind <- Project1 %>%
   filter(Sex == 0) %>%
   group_by(Wind, age_grp) %>%
   summarise(
     mean_CR = mean(X.CR, na.rm = TRUE),
     se_CR = sd(X.CR, na.rm = TRUE)
-  )
+  ) %>% 
+  mutate(Sex = "Women")
 
 men_summary_wind <- Project1 %>%
   filter(Sex == 1) %>%
@@ -544,102 +537,133 @@ men_summary_wind <- Project1 %>%
   summarise(
     mean_CR = mean(X.CR, na.rm = TRUE),
     se_CR = sd(X.CR, na.rm = TRUE)
-  )
+  ) %>% 
+  mutate(Sex = "Men")
 
-p_wind_women <- ggplot(women_summary_wind, aes(x = Wind, y = mean_CR, color = age_grp)) +
-  geom_point(size = 0.8, alpha = 0.5) +        # Add points for the mean
-  geom_smooth(se = TRUE, size = 0.8, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
-  labs(title = "Women", x = "Wind", y = "Best Time (%CR)", color = "Age Group") +  # Add labels and title
-  ylim(0, 200) +                                   # Set y-axis limit
-  theme_minimal(base_size = 15) +                  # Use minimal theme with larger font
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
-        axis.title.x = element_text(size = 12),             
-        axis.title.y = element_text(size = 12),
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size = 12))
+# Combine data for both sexes
+combined_summary_wind <- bind_rows(women_summary_wind, men_summary_wind)
 
-p_wind_men <- ggplot(men_summary_wind, aes(x = Wind, y = mean_CR, color = age_grp)) +
-  geom_point(size = 0.8, alpha = 0.5) +         # Add points for the mean
-  geom_smooth(se = TRUE, size = 0.8, method = "loess", linetype = 2) +  # Add smooth line without confidence interval
-  labs(title = "Men", x = "Wind", y = "Best Time (%CR)", color = "Age Group") +  # Add labels and title
-  ylim(0, 200) +                                   # Set y-axis limit
-  theme_minimal(base_size = 15) +                  # Use minimal theme with larger font
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
-        axis.title.x = element_text(size = 12),             
-        axis.title.y = element_text(size = 12),
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size = 12))
+# Create a single plot
+plot_wind <- ggplot(combined_summary_wind, aes(x = Wind, y = mean_CR, color = age_grp, linetype = Sex)) +
+  geom_smooth(se = FALSE, size = 0.7, method = "loess") +  # Add smooth line without confidence intervals
+  labs(
+    x = "Wind",
+    y = " ",
+    color = "Age Group",
+    linetype = "Gender"
+  ) +
+  ylim(0, 175) +  # Set y-axis limit
+  theme_minimal(base_size = 15) +  # Use minimal theme with larger font
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    legend.text = element_text(size = 5),
+    legend.title = element_text(size = 6)
+  ) 
 
-ggarrange(p_wind_women+ rremove("ylab"), 
-                    p_wind_men+ rremove("ylab"), 
-                    common.legend = TRUE, legend = "bottom", align = "hv") %>%
-  annotate_figure(top = text_grob("Figure 7: Interaction between %CR and Wind with Age by Gender", face = "bold", size = 13),
-    left = text_grob("Best Time (%CR)", rot = 90, size = 15))  
+# Combine the plots into a single figure
+combined_plot <- ggarrange(
+  plot_WBGT, 
+  plot_hum, 
+  plot_SR, 
+  plot_wind, 
+  common.legend = TRUE, 
+  legend = "bottom", 
+  labels = c("A", "B", "C", "D"), 
+  label.font = list(size = 6),
+  ncol = 2, 
+  nrow = 2
+)
+
+# Annotate the combined plot without adding extra layers
+annotate_figure(
+  combined_plot$`1`,
+  top = text_grob("Figure 4: Environmental Factors and Marathon Performance", face = "bold", size = 10),
+  left = text_grob("%CR", rot = 90, size = 10)
+)
 ```
+## WBGT
+Wet Bulb Globe Temperature (WBGT) is a composite measure of temperature that accounts for dry, wet, and globe temperatures, providing an indication of heat stress in the environment. Higher WBGT values reflect greater environmental heat stress, making it more difficult for the body to regulate internal temperature. This increases the physical demands and risks associated with activities such as running a marathon. `Figure 4 (Panel A)` visualizes the relationship between WBGT and marathon performance (%CR) across different age groups for men and women, with performance trends represented by smoothed lines. The lines are color-coded by age group (<25 years, 25–39 years, 40–54 years, 55–69 years, and $\ge 70$ years), and line types differentiate gender (solid for men and dashed for women). The fitted lines reveal that, regardless of WBGT levels, the 25–39 age group consistently outperforms all other age groups, while the $\ge 70$ age group performs the worst. This pattern is consistent for both men and women, highlighting the superior endurance and performance capabilities of the 25–39 age group compared to the significant challenges faced by the oldest group. Performance (%CR) exhibits a distinct non-linear relationship with WBGT across all age groups. When WBGT is below 10, %CR decreases (indicating better performance) as WBGT increases, suggesting slightly warmer conditions may improve performance. However, once WBGT exceeds 10, %CR rises sharply (indicating worse performance), reflecting the detrimental effects of extreme heat stress. This rise and fall in %CR is most pronounced in the $\ge 70$ age group, which shows the greatest sensitivity to WBGT changes. In contrast, the flatter lines observed for younger age groups indicate their performance is less affected by changes in WBGT, demonstrating greater resilience to environmental heat stress. Overall, `Panel A` underscores the importance of WBGT as a key environmental factor influencing marathon performance, particularly for older runners who are more vulnerable to heat stress.
+
+## Relative humidity
+Relative humidity is a measure of the amount of moisture in the air relative to its capacity to hold water vapor. High levels of humidity can make physical activity more challenging by reducing the body's ability to cool through sweat evaporation. `Figure 4 (Panel B)` illustrates the relationship between average relative humidity and marathon performance (%CR) across different age groups for men and women. The oldest age group ($\ge 70$ years) exhibited the most pronounced fluctuations in performance, as indicated by the curviest fitted lines. For this group, %CR initially increased (indicating worse performance) when humidity rose from 0 to 50%, remained relatively stable between 50% and 80%, and then increased again when humidity exceeded 80%. The 55–69 age group displayed a similar pattern, though the variations were less pronounced compared to the $\ge 70$ group. Across all age groups, performance was relatively stable when humidity ranged between 50% and 80%, suggesting that moderate humidity has minimal impact on marathon performance. For younger age groups (<25, 25–39, and 40–54 years), the fitted lines were much flatter, indicating that these participants were less affected by changes in humidity. The consistent trends between men (solid lines) and women (dashed lines) suggest that the relationship between humidity and performance is similar for both genders, with no notable differences observed. Overall, Panel B highlights that older runners, particularly those in the $\ge 70$ age group, are more sensitive to changes in humidity, while younger runners show greater resilience to its effects. This suggests that age plays a significant role in determining how humidity impacts marathon performance.
+
+## Solar radiation
+Solar radiation refers to the energy emitted by the sun, which contributes to environmental heat stress during outdoor activities. High levels of solar radiation can increase the risk of overheating and fatigue in runners. `Figure 4 (Panel C)` illustrates the relationship between solar radiation and marathon performance (%CR) across different age groups for men and women. The position of the fitted lines shows that participants in the 25–39 age group consistently performed the best, regardless of solar radiation levels, followed by the 40–54, <25, 55–69, and $\ge 70$ age groups. For both men and women in the <25, 25–39, and 40–54 age groups, the fitted lines are relatively flat when solar radiation is below 500, indicating that solar radiation in this range has little to no effect on their performance. However, a distinct "U-shaped" relationship is observed for females in the 55–69 and $\ge 70$ age groups. For these groups, performance (%CR) initially worsens with increasing solar radiation but begins to improve after solar radiation exceeds 500. This suggests that older female runners are more sensitive to changes in solar radiation, with their performance declining at moderate levels but potentially adapting or stabilizing at higher levels. In contrast, younger age groups appear largely unaffected by variations in solar radiation, demonstrating greater resilience to this environmental factor.
+
+## Wind
+Wind speed measures the movement of air in the environment, which can either assist or hinder a runner's performance depending on its direction and intensity. `Figure 4 (Panel D)` illustrates the relationship between wind speed and marathon performance (%CR) across different age groups for men and women. The fitted lines show that participants in the 25–39 age group consistently performed the best, while those in the $\ge 70$ age group performed the worst on average, regardless of wind speed. For the oldest age group ($\ge 70$ years), the fitted line is more pronouncedly curvy for females compared to males, suggesting that wind speed introduces greater variability in performance for older women. Specifically, for females in this group, %CR increased (indicating worse performance) as wind speed rose from 0 to 7.5, while no such trend was observed for males in the same age group. This highlights a potential gender difference in sensitivity to wind conditions among older runners. For younger age groups (<25, 25–39, and 40–54 years), the fitted lines remained relatively flat, indicating that wind speed had minimal impact on marathon performance for both sexes. These findings suggest that the influence of wind speed on performance is more prominent among older participants, particularly older women, while younger runners are largely unaffected by changes in wind conditions.
+
 
 # Importance Variables
 
-`Figure 8` presents the correlation between weather-related variables and marathon performance (`%CR`). Positive correlations are shown in red and negative correlations are shown in blue. The higher the correlation, the darker the color. The last column of the correlation plot shows that the correlations between performance `%CR` and environmental variables are all around 0. This indicates that there was no linear relationship between performance and weather conditions. The Wet Bulb Globe Temperature (WBGT) variable is correlated with Dry Bulb Temperature, Wet Bulb Temperature, Black Bulb Temperature, and Dew Point, with a correlation close to 1. This suggests to include only one of these four variables when modeling performance to avoid co-linearity. As a result, the WBGT, humidity, solar radiation, wind, and average air quality will be included as covariates in the model to determine their effects on marathon performance. 
-
-```{r fig.align='center', out.width="85%"}
-Project1_name <- Project1_merged %>%
-  rename("% CR" = X.CR,
-         "Dry bulb Temp" = Td..C,
-         "Wet bulb Temp" = Tw..C,
-         "Percent relative humidity" = X.rh,
-         "Black globe Temp" = Tg..C,
-         "Solar Radiation" = SR.W.m2,
-         "Average AQI" = ave_aqi,
-         "Dew Point" = DP
-         )
-r <- cor(Project1_name[, c(6:14,17)], use="complete.obs")
-
-variable_order <- c("Dry bulb Temp", "Wet bulb Temp", 
-                    "Black globe Temp", "Solar Radiation", 
-                    "Percent relative humidity", "Average AQI", "Dew Point", "WBGT", "% CR")
-
-# Reorder the correlation matrix based on the new variable order
-r_reordered <- r[variable_order, variable_order]
-
-ggcorrplot(r_reordered, 
-           hc.order = TRUE, 
-           type = "lower",
-           lab = TRUE) +
-  ggtitle("Figure 8: Correlation Matrix of Environmental Variables") +
-  theme(plot.title = element_text(hjust = 0.5, size=14),
-        axis.text.x = element_text(size = 12),             
-        axis.text.y = element_text(size = 12))
-```
+To quantify the association between weather-related variables and marathon performance, a quadratic linear model was used. The model includes the covariates Wet Bulb Globe Temperature (WBGT), relative humidity, solar radiation, wind, and average air quality (AQI), as well as their interactions with both the linear and quadratic terms of age. The inclusion of a quadratic age term ($\text{Age}^2$) accounts for the observed non-linear relationship between age and marathon performance. Interaction terms between 
+$\text{Age}$, and the environmental covariates allow for a detailed exploration of how the effects of these covariates on performance vary with age. The final model provides a comprehensive framework for understanding the complex relationships between environmental factors, age, and marathon performance.
 
 
-To quantify the association between weather-related variables and marathon performance, a random intercept linear mixed model was used. The model included the covariates WBGT, humidity, solar radiation, wind, and average air quality, with intercepts varying by age. The random intercept component was utilized because there was a relationship between age and performance as can be seen in `Figure 3`, and we wanted to capture the variation in performance by age in the model. The model has the formula $\% \text{CR}_{ij} = \beta_0 + \beta_1 \cdot \text{WBGT}_{ij} + \beta_2 \cdot \text{Humidity}_{ij} + \beta_3 \cdot \text{Solar Radiation}_{ij} + \beta_4 \cdot \text{Wind}_{ij} + \beta_5 \cdot \text{Ave AQI}_{ij} + u_{i} + \epsilon_{ij}$, where ij represents the jth observation in the ith age group ($i \in (14,15,\cdots,91 )$).
+\begin{align*}
+\text{\%CR} &= \beta_0 + \beta_1 \cdot \text{Age} + \beta_2 \cdot \text{Age}^2 + 
+\beta_3 \cdot \text{WBGT} + \beta_4 \cdot \text{Humidity} + \beta_5 \cdot \text{Solar Radiation} + \beta_6 \cdot \text{Wind} \\
+&+ \beta_7 \cdot (\text{Age:WBGT}) + \beta_8 \cdot (\text{Age:Humidity}) + \beta_9 \cdot (\text{Age:SR}) + \beta_{10} \cdot (\text{Age:Wind}) + \epsilon
+\end{align*}
 
-`Tables 4` and `5` display the coefficient estimates, standard error, and p-values for the fixed and random effects in the previously described model. The variables WBGT, percent humidity, and solar radiation appeared to be significant at the 0.05 level of significance, suggesting that all three factors are likely to have an effect on marathon performance regardless of age. However, the coefficient estimates for each of these variables are small, close to 0, and while the effects are significant, they do not result in a large change in marathon performance. For example, a one-point increase in WBGT would only result in a 0.5 increase in %CR of performance, adjusted for age. Variable wind speed and average AQI appeared to be insignificant. This model has limitations. Based on `Figure 3`, we can see that the relationship between marathon performance and age is nonlinear. The current model does not accommodate this structure. Model selection is expected to be carried out in further regression analyses.
+
+`Table 3` highlights the significant covariates influencing marathon performance (%CR) among male participants. Age has a strong negative effect on performance, with an estimated decrease of 5.60 units in %CR per year, while its quadratic term ($\text{Age}^2$) adds a non-linear effect of 0.08 units, indicating an accelerating decline in performance with increasing age. Among environmental factors, humidity has a positive effect on performance, with each unit increase in humidity improving %CR by 0.16 units. Conversely, solar radiation (SR) negatively affects performance, with each unit increase in SR leading to a 0.01 unit increase in %CR, reflecting worse performance.
+
+The interaction terms further reveal how age modifies these environmental effects. For instance, the Age and WBGT interaction suggests that each additional year of age amplifies the negative impact of WBGT on performance by 0.01 units, while the Age and Humidity interaction indicates that the positive effect of humidity on performance diminishes by 0.004 units per year of age. Similarly, the Age and Solar Radiation interaction shows that the detrimental impact of SR becomes more pronounced with age, with a 0.003 unit increase in %CR for each year. Together, these results highlight a nuanced relationship where age and environmental conditions interact to influence marathon performance, with age exacerbating or mitigating the effects of key environmental factors.
 ```{r}
+Project1_merged_mod <- Project1_merged %>% 
+  rename(
+    Age = `Age..yr.`, 
+    Humidity = `X.rh`,
+    SR = `SR.W.m2`,
+    AQI = `ave_aqi`
+  )
 # model
-M1 <- lmerTest::lmer(X.CR ~ WBGT + X.rh + SR.W.m2 + Wind + ave_aqi + (1|Age..yr.),
-                     data=Project1_merged)
+M1_men <- lm(X.CR ~ Age + I(Age^2) + 
+                   (WBGT + Humidity + SR + Wind + AQI) +
+                   Age*(WBGT + Humidity + SR + Wind + AQI),
+                   data = Project1_merged_mod[Project1_merged_mod$Sex == 1,])
 
-tidy_m1_fixed <- tidy(M1, effects = "fixed")
-tidy_m1_random <- tidy(M1, effects = "ran_pars")
+# Create coefficient estimate table
+## Men
+model_summary_men <- summary(M1_men)
+coefficients_data_men<- as.data.frame(model_summary_men$coefficients)
+colnames(coefficients_data_men) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+coefficients_data_men$Coefficients <- rownames(coefficients_data_men)
+coefficients_data_men <- coefficients_data_men[, c("Coefficients", "Estimate", "Std. Error", "t value", "Pr(>|t|)")] %>% 
+  filter(`Pr(>|t|)`<0.05) %>% 
+  mutate(across(where(is.numeric), ~ round(., 2)))
 
-tidy_m1_fixed$term <- c("(Intercept)", "WBGT", "Percent Humidity", 
-                        "Solar Radiation", "Wind", "Average AQI")
-tidy_m1_random$group <- c("Age", "Residual")
-tidy_m1_random$term <- c("(Intercept)", "")
-
-tidy_m1_fixed[, -c(1, 5, 6)] %>%
-  kbl(booktabs = TRUE, caption = "Fixed Effects of the Model",
-      col.names = c("Term", "Estimate", "Standard Error", "P-value"),
+coefficients_data_men[, -1] %>%
+  kbl(booktabs = TRUE, caption = "Summary of Significant Covariates (Men)",
+      #col.names = c("Group", "Term","SD"),
       longtable = TRUE, linesep = "") %>%
   kable_styling(font_size = 10,
                 latex_options = c("repeat_header", "HOLD_position", "scale_down"))
+```
 
-# Print random effects using kable
-tidy_m1_random[1,3] <- "Intercept"
-tidy_m1_random[, -1] %>%
-  kbl(booktabs = TRUE, caption = "Random Effect of the Model",
-      col.names = c("Group", "Term","SD"),
+`Table 4` presents the significant covariates for female participants. Age has a strong negative effect on performance, with an estimated decrease of 5.91 units in %CR per year, while its quadratic term ($\text{Age}^2$) adds a non-linear effect of 0.08 units, confirming an accelerating decline in performance with age. Among environmental factors, WBGT significantly impacts performance, with each unit increase in WBGT associated with a 0.34 unit increase in %CR, reflecting worse performance. Unlike the male analysis, no other environmental variables or interactions appear significant in this model, suggesting that WBGT may be the primary environmental determinant of performance for women in this dataset.
+
+The modeling results for men and women share key similarities but also highlight notable differences. Both models reveal a significant non-linear relationship between age and marathon performance, with the linear (Age) and quadratic ($\text{Age}^2$) terms indicating a decline in performance with age at an increasing rate. Wet Bulb Globe Temperature (WBGT) is a significant factor for both genders, underscoring its broad impact on performance. However, men’s results show a more complex relationship with environmental variables, with significant effects for humidity, solar radiation (SR), and their interactions with age (Age:Humidity, Age:SR, Age:WBGT). In contrast, only WBGT is significant for women, and no age-environment interactions were observed. Additionally, women exhibit a slightly stronger decline in performance with age (-5.91) compared to men (-5.60). These findings suggest that while age-related trends are consistent across genders, men’s performance is more strongly influenced by environmental conditions, whereas women’s performance appears less sensitive to these factors, with WBGT being the dominant environmental influence.
+```{r}
+M1_women <- lm(X.CR ~ Age + I(Age^2) + 
+                   (WBGT + Humidity + SR + Wind + AQI) +
+                   Age*(WBGT + Humidity + SR + Wind + AQI),
+                   data = Project1_merged_mod[Project1_merged_mod$Sex == 0,])
+## Women
+model_summary_women <- summary(M1_women)
+coefficients_data_women<- as.data.frame(model_summary_women$coefficients)
+colnames(coefficients_data_women) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+coefficients_data_women$Coefficients <- rownames(coefficients_data_women)
+coefficients_data_women <- coefficients_data_women[, c("Coefficients", "Estimate", "Std. Error", "t value", "Pr(>|t|)")] %>% 
+  filter(`Pr(>|t|)`<0.05)%>% 
+  mutate(across(where(is.numeric), ~ round(., 2)))
+
+coefficients_data_women[, -1] %>%
+  kbl(booktabs = TRUE, caption = "Summary of Significant Covariates (Women)",
+      #col.names = c("Group", "Term","SD"),
       longtable = TRUE, linesep = "") %>%
   kable_styling(font_size = 10,
                 latex_options = c("repeat_header", "HOLD_position", "scale_down"))
@@ -656,8 +680,6 @@ There are several limitations in this study. First, the number of observations f
 
 # Reference
 
-Ely, B. R., Cheuvront, S. N., Kenefick, R. W., & Sawka, M. N. (2010). Aerobic performance is degraded, despite modest hyperthermia, in hot environments. Med Sci Sports Exerc, 42(1), 135-41.
-
 Ely, M. R., Cheuvront, S. N., Roberts, W. O., & Montain, S. J. (2007). Impact of weather on marathon-running performance. Medicine and science in sports and exercise, 39(3), 487-493.
 
 Kenney, W. L., & Munce, T. A. (2003). Invited review: aging and human temperature regulation. Journal of applied physiology, 95(6), 2598-2603.
@@ -666,6 +688,7 @@ Besson, T., Macchi, R., Rossi, J., Morio, C. Y., Kunimasa, Y., Nicol, C., ... & 
 
 Yanovich, R., Ketko, I., & Charkoudian, N. (2020). Sex differences in human thermoregulation: relevance for 2020 and beyond. Physiology, 35(3), 177-184.
 
+Zavorsky, G. S., Tomko, K. A., & Smoliga, J. M. (2017). Declines in marathon performance: Sex differences in elite and recreational athletes. PLoS ONE, 12(2), e0172121. https://doi.org/10.1371/journal.pone.0172121
 
 \newpage
 
