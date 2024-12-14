@@ -23,7 +23,7 @@ The simulation framework was guided by the ADEMP (Aims, Data-generating mechanis
 
 The results demonstrate that increasing the number of clusters ($G$) consistently reduces the variance of the treatment effect estimate ($\hat{\beta}$), though the benefits diminish beyond approximately $G = 40$. Lower cost ratios ($c_1/c_2 = 2, 5$) allocate more resources to within-cluster measurements ($R$), leading to steep reductions in variance at smaller cluster sizes, while higher cost ratios ($c_1/c_2 = 10, 20$) prioritize increasing the number of clusters, achieving low variance at larger $G$. Additionally, distributional assumptions significantly influence design performance. Under Normal outcomes, increasing residual variance ($\sigma^2$) weakens clustering effects and reduces precision, whereas Poisson outcomes are more sensitive to between-cluster variability ($\gamma^2$), which affects both variance and power. These findings emphasize the importance of tailoring design strategies to cost structures and the underlying data distribution to achieve optimal precision. The full report can be found [here](Report/PHP2550_Project3.pdf).
 
-![](Visuals/Table_1-Simulation_Results_Vary_by_Number_of_Clusters_and_Relative_Costs.png)
+![](Visuals/Figure-1-Variance-of-Beta-Estimates-vs-Number-of-Clusters-Normal.png)
 
 ## Files
 
