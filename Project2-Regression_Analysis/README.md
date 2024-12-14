@@ -10,9 +10,9 @@ The dataset includes demographic, psychological, and smoking history variables f
 
 ### Results
 
-The exploratory analysis highlighted factors such as education, age, and nicotine dependence as influential in smoking cessation outcomes. Regression analysis found varenicline to be associated with higher abstinence rates, with BASC showing additional benefit when combined with varenicline. The analysis also revealed that baseline nicotine dependence and current depressive symptoms acted as moderators for BASC, with higher dependence and active depressive symptoms potentially reducing BASC’s effectiveness. Key predictors of abstinence included college education, lower nicotine dependence, and certain income levels. The model demonstrated reasonable classification accuracy (AUC = 0.76), though calibration issues indicated closer alignment on training data than test data. The full report can be found [here](Report/PHP2550_Project2.pdf).
+The exploratory analysis highlighted factors such as education, age, and nicotine dependence as influential in smoking cessation outcomes. Regression analysis found varenicline to be associated with higher abstinence rates, with BASC showing additional benefit when combined with varenicline. The results indicate that nicotine dependence, nicotine metabolism, and educational attainment were consistently strong predictors of smoking abstinence, while the effects of income level and menthol cigarette use varied across treatment groups. Behavioral Activation (BA) treatment showed differential effectiveness, benefiting some subgroups, such as those with moderate income, but being less effective for menthol cigarette users. Similarly, pharmacotherapy with Varenicline demonstrated enhanced effectiveness when combined with factors like higher education and older age, with additional benefits observed among women. These findings highlight the complex interplay of demographic, behavioral, and treatment factors in influencing smoking cessation outcomes. The model demonstrated reasonable classification accuracy (AUC = 0.83), though calibration issues indicated closer alignment on training data than test data. The full report can be found [here](Report/PHP2550_Project2.pdf).
 
-![](Visuals/`Table_1-Baseline_Charac.png`)
+![](Visuals/Table_4-Summary_of_Non-Zero_Coefficient_Estimates_in_Exponential_Scale.png)
 
 ## Files
 
@@ -21,9 +21,13 @@ The exploratory analysis highlighted factors such as education, age, and nicotin
 
 `PHP2550_Project2.pdf`: The PDF version of the Regression Analysis report, which includes both written text interpretations and a Code Appendix with the raw code used in the analysis. 
 
+### Analysis Function
+`Lasso with Bootstrap.R`: An R script that includes a function for implementing Lasso regression with bootstrap sampling.
+
+### Visuals:
+Included tables and figures in the report.
 
 ## Dependencies
-
 The following packages were used in this analysis: 
 
  - Data Manipulation: `dplyr`, `tidyr`, `mice`, `caret`

@@ -1,4 +1,4 @@
-# PHP2550-Project2-Regression Analysis
+# PHP2550-Project3-Simulation
 
 ### Background
 
@@ -21,7 +21,9 @@ The simulation framework was guided by the ADEMP (Aims, Data-generating mechanis
 
 ### Results
 
-The results demonstrate that increasing the number of clusters ($G$) consistently reduces the variance of the treatment effect estimate ($\hat{\beta}$), though the benefits diminish beyond approximately $G = 40$. Lower cost ratios ($c_1/c_2 = 2, 5$) allocate more resources to within-cluster measurements ($R$), leading to steep reductions in variance at smaller cluster sizes, while higher cost ratios ($c_1/c_2 = 10, 20$) prioritize increasing the number of clusters, achieving low variance at larger $G$. Additionally, distributional assumptions significantly influence design performance. Under Normal outcomes, increasing residual variance ($\sigma^2$) weakens clustering effects and reduces precision, whereas Poisson outcomes are more sensitive to between-cluster variability ($\gamma^2$), which affects both variance and power. These findings emphasize the importance of tailoring design strategies to cost structures and the underlying data distribution to achieve optimal precision.
+The results demonstrate that increasing the number of clusters ($G$) consistently reduces the variance of the treatment effect estimate ($\hat{\beta}$), though the benefits diminish beyond approximately $G = 40$. Lower cost ratios ($c_1/c_2 = 2, 5$) allocate more resources to within-cluster measurements ($R$), leading to steep reductions in variance at smaller cluster sizes, while higher cost ratios ($c_1/c_2 = 10, 20$) prioritize increasing the number of clusters, achieving low variance at larger $G$. Additionally, distributional assumptions significantly influence design performance. Under Normal outcomes, increasing residual variance ($\sigma^2$) weakens clustering effects and reduces precision, whereas Poisson outcomes are more sensitive to between-cluster variability ($\gamma^2$), which affects both variance and power. These findings emphasize the importance of tailoring design strategies to cost structures and the underlying data distribution to achieve optimal precision. The full report can be found [here](Report/PHP2550_Project3.pdf).
+
+![](Visuals/Table_1-Simulation_Results_Vary_by_Number_of_Clusters_and_Relative_Costs.png)
 
 ## Files
 
@@ -37,6 +39,11 @@ The results demonstrate that increasing the number of clusters ($G$) consistentl
 `res_poisson_opt`: contains the results of simulations designed to evaluate the optimal allocation of clusters (G) and measurements per cluster (R) under the Poisson distribution
 `res_poisson_vary`: contains simulation results evaluating the impact of varying within-cluster variance ($\sigma^2$) and treatment effect sizes ($\beta$) on the performance of cluster randomized trial designs under poisson distribution, using optimal configurations of clusters ($G$) and measurements per cluster ($R$) determined in previous steps, and includes metrics such as the variance of the treatment effect estimate ($\hat{\beta}$), power, and confidence interval coverage.
 
+### Simulaion Functions
+`Simulation (Normal).R`: An R script for simulating data under a normal distribution framework.
+`Simulation (Poisson).R`: An R script for simulating data under a poisson distribution framework.
+`Performance of Clusters (Normal).R`: An R script for generating performance metrics across varying cluster sizes and cost ratios under a normal distribution framework.
+`Performance of Clusters (Poisson).R`: An R script for generating performance metrics across varying cluster sizes and cost ratios under a poisson distribution framework.
 ## Dependencies
 
 The following packages were used in this analysis: 
