@@ -10,7 +10,9 @@ The dataset includes demographic, psychological, and smoking history variables f
 
 ### Results
 
-The exploratory analysis highlighted factors such as education, age, and nicotine dependence as influential in smoking cessation outcomes. Regression analysis found varenicline to be associated with higher abstinence rates, with BASC showing additional benefit when combined with varenicline. The analysis also revealed that baseline nicotine dependence and current depressive symptoms acted as moderators for BASC, with higher dependence and active depressive symptoms potentially reducing BASC’s effectiveness. Key predictors of abstinence included college education, lower nicotine dependence, and certain income levels. The model demonstrated reasonable classification accuracy (AUC = 0.76), though calibration issues indicated closer alignment on training data than test data.
+The exploratory analysis highlighted factors such as education, age, and nicotine dependence as influential in smoking cessation outcomes. Regression analysis found varenicline to be associated with higher abstinence rates, with BASC showing additional benefit when combined with varenicline. The analysis also revealed that baseline nicotine dependence and current depressive symptoms acted as moderators for BASC, with higher dependence and active depressive symptoms potentially reducing BASC’s effectiveness. Key predictors of abstinence included college education, lower nicotine dependence, and certain income levels. The model demonstrated reasonable classification accuracy (AUC = 0.76), though calibration issues indicated closer alignment on training data than test data. The full report can be found [here](Report/PHP2550_Project2.pdf).
+
+![](Visuals/`Table_1-Baseline_Charac.png`)
 
 ## Files
 
