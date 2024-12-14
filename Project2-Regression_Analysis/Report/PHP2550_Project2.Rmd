@@ -819,7 +819,7 @@ summary_table <- data.frame(
 summary_table %>% 
   gt() %>%
   tab_header(
-    title = "Table 5: Performance of the FInal Model"
+    title = "Table 5: Performance of the Final Model"
   ) %>%
   tab_style(
     style = list(
